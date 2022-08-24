@@ -1,0 +1,441 @@
+{literal}
+<style>
+.profile_div {
+	padding-top:8px;
+	padding-bottom:8px;
+}
+</style>
+<script language="javascript" type="text/javascript">
+function show_photo()
+{
+	var obj = document.getElementById('photo');
+	if (obj.style.visibility == 'hidden')
+		obj.style.visibility = 'visible';
+	else
+		obj.style.visibility = 'hidden';
+}
+</script>
+{/literal}
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Личная информация</span></td>
+	<td class="block_title4" style="padding-right: 10px;" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_person.string}">Редактировать</a></td>
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr valign="top">
+	<td>
+			<div style="position:relative;">
+			{if ($page.form.photo.file!='')}
+			 	<img src="{$page.form.photo.file}" border="0" alt="{$page.form.showname}" height="{$page.form.photo.h}" width="{$page.form.photo.w}" />
+			{elseif ($page.form.avatar.file!='')}
+				 	<img src="{$page.form.avatar.file}" border="1" height="{$page.form.avatar.h}" width="{$page.form.avatar.w}">
+			{else}
+				<img src="/_img/modules/passport/user_unknown.gif" width="90" height="90" />
+			{/if}
+			{if $page.form.photo.file==''}
+				<div style="padding: 20px 0px 20px 0px;"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_photo.string}"><font color="red">Загрузить фото</font></a></div>
+			{/if}
+			</div>
+		</td>
+	<td width="100%" style="padding-left:20px;">
+
+		{php}
+			if (preg_match('/(\d+)/', $this->_tpl_vars['page']['form']['showname'], $_match))
+				$this->_tpl_vars['_show_bad_name_message'] = (($_match[1] < 1900 && $num > 1000) || $_match[1] > 2009);
+		{/php}
+		
+		<div class="title">{if $page.form.gender==1}<img src="/_img/modules/passport/icon_male_s.gif" border="0" width="12" height="12" align="bottom" style="margin-right:5px" />{elseif $page.form.gender==2}<img src="/_img/modules/passport/icon_female_s.gif" border="0" width="9" height="13" align="bottom" style="margin-right:5px;" />{/if}{$page.form.showname}{if $_show_bad_name_message} *{/if}</div>
+		<div class="t11_grey">{$page.form.visited|user_online:"%f %H:%M":"%d %F":$page.form.gender}</div>
+        <div class="profile_div t11_grey">Моя страница: <a href="http://{$CURRENT_ENV.site.regdomain}/a{$USER->ID}">http://{$CURRENT_ENV.site.regdomain}/a{$USER->ID}</a></div>
+		{if $page.form.birthday_day != 0 || $page.form.birthday_month != 0 || $page.form.birthday_year != 0 || $page.form.height != 0 || $page.form.weight != 0}
+		<div class="profile_div">
+		{if $page.form.birthday_day != 0 || $page.form.birthday_month != 0 || $page.form.birthday_year != 0}
+			Дата рождения: 
+				{if $page.form.birthday_day!=0 && $page.form.birthday_month!=0}
+					{$page.form.birthday_day} 
+					{$page.form.birthday_month|month_to_string:2
+					}{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && $page.form.static.birthday_month_day.count > 0}<sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.birthday_month_day.type}&val={$page.form.static.birthday_month_day.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.birthday_month_day.count|number_format:0:'':' '}</font></a></sup>{/if}
+				{else}
+					{if $page.form.birthday_day!=0}{$page.form.birthday_day}{/if} 
+					{if $page.form.birthday_month!=0}
+						{$page.form.birthday_month|month_to_string:2
+						}{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && $page.form.static.birthday_month.count > 0}<sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.birthday_month.type}&val={$page.form.static.birthday_month.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.birthday_month.count|number_format:0:'':' '}</font></a></sup>{/if}
+					{/if} 
+				{/if}{if $page.form.birthday_year != 0}
+					{$page.form.birthday_year}
+					{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && $page.form.static.birthday_year.count > 0}<sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.birthday_year.type}&val={$page.form.static.birthday_year.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.birthday_year.count|number_format:0:'':' '}</font></a></sup>{/if}
+				{/if}.
+		{/if}
+		{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && $page.form.height != 0}
+			Рост: {$page.form.height} см{if $page.form.static.height.count > 0} <sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.height.type}&val={$page.form.static.height.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.height.count|number_format:0:'':' '}</font></a></sup>{/if}.
+		{/if}
+		{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && $page.form.weight != 0}
+			Вес: {$page.form.weight} кг{if $page.form.static.weight.count > 0} <sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.weight.type}&val={$page.form.static.weight.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.weight.count|number_format:0:'':' '}</font></a></sup>{/if}.
+		{/if}
+		</div>
+		{/if}
+		{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && ($page.form.children != 0)}
+		<div class="profile_div">
+			{if $page.form.marriad != 0}
+				Семейное положение: {$page.form.marriad_arr[$page.form.gender][$page.form.marriad]}{if $page.form.static.marriad.count > 0} <sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.marriad.type}&val={$page.form.static.marriad.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.marriad.count|number_format:0:'':' '}</font></a></sup>{/if}.
+			{/if}
+			{if $page.form.children != 0}
+				Детей: {$page.form.children_arr[$page.form.children]}{if $page.form.static.children.count > 0} <sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.children.type}&val={$page.form.static.children.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.children.count|number_format:0:'':' '}</font></a></sup>{/if}.
+			{/if}
+		</div>
+		{/if}
+		{if $page.form.zodiac}
+			<div class="profile_div"><img src="{$page.form.zodiac.icon_sm_path}" style="margin-right:5px;" border="0" align="absmiddle" alt="{$page.form.zodiac.title}" title="{$page.form.zodiac.title}" />{$page.form.zodiac.title}{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && $page.form.static.zodiac.count > 0} <sup class="tip"> <a href="/{$CURRENT_ENV.section}/users_static.php?id={$page.form.static.zodiac.type}&val={$page.form.static.zodiac.value}" title="Список пользователей" class="text11"><font color="red">{$page.form.static.zodiac.count|number_format:0:'':' '}</font></a></sup>{/if}.&nbsp;&nbsp;&nbsp;&nbsp;<span class="t11_grey">Гороскоп: <a href="http://{$CURRENT_ENV.site.regdomain}/horoscope/day/{$page.form.zodiac.id}.html">на день</a>, <a href="http://{$CURRENT_ENV.site.regdomain}/horoscope/week/{$page.form.zodiac.id}.html">на неделю</a></span></div>{/if}
+		{if isset($page.form.country_arr[$page.form.country]) || isset($page.form.region_arr[$page.form.region]) || $page.form.city_text != '' || isset($page.form.city_arr[$page.form.city])}
+		<div class="profile_div">
+			{if isset($page.form.country_arr[$page.form.country]) && $page.form.country!=1}{$page.form.country_arr[$page.form.country].name},{/if} 
+			{if isset($page.form.region_arr[$page.form.region]) && $page.form.city!=$page.form.default_city}{$page.form.region_arr[$page.form.region].name},{/if} 
+			{if ($page.form.city_text != '')}{$page.form.city_text}{else}{$page.form.city_arr[$page.form.city].name}{/if}
+		</div>
+		{/if}
+		
+		<div class="profile_div">{$page.form.about|nl2br}</div>
+		
+	</td>
+</tr>
+</table>
+
+{* Место жительства *}
+{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && is_array($page.form.user_address) && sizeof($page.form.user_address)}
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Место жительства</span></td>
+	<td class="block_title4" style="padding-right: 10px;" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_person.string}">Редактировать</a></td>
+
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+{section name=addr loop=$page.form.user_address step=2}
+{assign var=index value=$smarty.section.addr.index+1}
+<tr valign="top">
+	<td style="padding-left:40px;">
+		{if isset($page.form.user_address[$smarty.section.addr.index])}
+		<div class="profile_div">
+			{if $page.form.user_address[$smarty.section.addr.index].userscount > 0}<a href="/social/users/address/{$page.form.user_address[$smarty.section.addr.index].id}/">{/if}{$page.form.user_address[$smarty.section.addr.index].name}{if $page.form.user_address[$smarty.section.addr.index].userscount > 0}</a><sup class="tip"> <font color="red">{$page.form.user_address[$smarty.section.addr.index].userscount|number_format:0:'':' '}</font></sup>{/if}
+			{if $page.form.user_address[$smarty.section.addr.index].name}
+				{if $page.form.user_address[$smarty.section.addr.index].right == 2} - <span class="tip">доступно друзьям</span>
+				{elseif $page.form.user_address[$smarty.section.addr.index].right == 1} - <span class="tip">доступно всем</span>
+				{else} - <span class="tip">доступно только мне</span>{/if}
+			{/if}
+		</div>
+		{/if}
+	</td>
+	<td style="padding-left:40px;">
+		{if isset($page.form.user_address[$index])}
+		<div class="profile_div">
+			{if $page.form.user_address[$index].userscount > 0}<a href="/social/users/address/{$page.form.user_address[$smarty.section.addr.index].id}/">{/if}{$page.form.user_address[$index].name}{if $page.form.user_address[$index].userscount > 0}</a><sup class="tip"> <font color="red">{$page.form.user_address[$index].userscount|number_format:0:'':' '}</font></sup>{/if}
+			{if $page.form.user_address[$index].name}
+				{if $page.form.user_address[$index].right == 2} - <span class="tip">доступно друзьям</span>
+				{elseif $page.form.user_address[$index].right == 1} - <span class="tip">доступно всем</span>
+				{else} - <span class="tip">доступно только мне</span>{/if}
+			{/if}
+		</div>
+		{/if}
+	</td>
+</tr>
+{/section}
+</table>
+{/if}
+
+{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154)) && is_array($page.form.place_list.education) && sizeof($page.form.place_list.education)}
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Контакты</span></td>
+	<td class="block_title4" style="padding-right: 10px;" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_contacts.string}">Редактировать</a></td>
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr valign="top">
+	<td style="padding-left:20px;">
+	<div>
+		{if $page.form.icq != ''}<div class="profile_div">ICQ: {$page.form.icq}
+		{if $USER->Profile.general.ContactRights & 2} - <span class="tip">доступно друзьям</span>
+		{elseif $USER->Profile.general.ContactRights & 1} - <span class="tip">доступно всем</span>
+		{else} - <span class="tip">доступно только мне</span>{/if}
+		</div>{/if}
+		
+		{if $page.form.skype != ''}<div class="profile_div">Skype: {$page.form.skype}
+		{if $USER->Profile.general.ContactRights & 8} - <span class="tip">доступно друзьям</span>
+		{elseif $USER->Profile.general.ContactRights & 4} - <span class="tip">доступно всем</span>
+		{else} - <span class="tip">доступно только мне</span>{/if}</div>{/if}
+		
+		{if $page.form.site != ''}<div class="profile_div">Сайт: <a href="{$page.form.site|url}" target="_blank">{$page.form.site|url:false}</a>
+		{if $USER->Profile.general.ContactRights & 32} - <span class="tip">доступно друзьям</span>
+		{elseif $USER->Profile.general.ContactRights & 16} - <span class="tip">доступно всем</span>
+		{else} - <span class="tip">доступно только мне</span>{/if}</div>{/if}
+		
+		{if $page.form.phone != ''}<div class="profile_div">Телефон: {$page.form.phone}
+		{if $USER->Profile.general.ContactRights & 128} - <span class="tip">доступно друзьям</span>
+		{elseif $USER->Profile.general.ContactRights & 64} - <span class="tip">доступно всем</span>
+		{else} - <span class="tip">доступно только мне</span>{/if}</div>{/if}
+	</div>
+	</td>
+</tr>
+</table>
+{/if}
+
+
+{* Образование *}
+{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154))}
+
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Образование</span></td>
+	<td class="block_title4" style="padding-right: 10px;" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_education.string}">Редактировать</a></td>
+
+</tr>
+</table>
+
+	{if is_array($page.form.place_list.education) && sizeof($page.form.place_list.education)}
+		<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+		{foreach from=$page.form.place_list.education item=l}
+		<tr valign="top">
+			<td style="padding-left:40px;">
+			<div>
+				<div class="profile_div">
+				{if $l.PlaceType == constant('PlaceMgr::PT_HIGHER_EDUCATION')}
+					
+					{if $l.PlaceCommunityUsersCount > 0}
+						{$l.PlaceTreeName}: {$l.PlaceCityText}, <a href="/social/community/{$l.CommunityID}/">{$l.PlaceName}</a>{if $l.PlaceCommunityUsersCount > 0}<sup class="tip"> <font color="red">{$l.PlaceCommunityUsersCount|number_format:0:'':' '}</font></sup>{/if}
+					{else}
+						{$l.PlaceTreeName}: {$l.PlaceCityText}, {$l.PlaceName}
+					{/if}
+					
+					{capture name=place}
+						{if $l.Faculty}факультет {$l.Faculty}{if $l.Chair},{/if}{/if}
+						{if $l.Chair}специальность {$l.Chair}{if $l.YearStart && $l.YearEnd},{/if}{/if}
+						{if $l.YearStart && $l.YearEnd}{$l.YearStart}-{$l.YearEnd} г.{/if}
+					{/capture}
+					
+					{if trim($smarty.capture.place)}
+					({$smarty.capture.place|trim})
+					{/if}
+				{elseif $l.PlaceType == constant('PlaceMgr::PT_SECONDARY_EDUCATION')}
+					{if $l.PlaceCommunityUsersCount > 0}
+						{$l.PlaceTreeName}: {$l.PlaceCityText}, <a href="/social/community/{$l.CommunityID}/">{$l.PlaceName}</a>{if $l.PlaceCommunityUsersCount > 0}<sup class="tip"> <font color="red">{$l.PlaceCommunityUsersCount|number_format:0:'':' '}</font></sup>{/if}
+					{else}
+						{$l.PlaceTreeName}: {$l.PlaceCityText}, {$l.PlaceName}
+					{/if}
+
+					{capture name=place}
+						{if $l.YearStart && $l.YearEnd}{$l.YearStart}-{$l.YearEnd} г.{/if}
+						{if $l.Class}{$l.Class} класс{/if}
+					{/capture}
+					
+					{if trim($smarty.capture.place)}
+					({$smarty.capture.place|trim})
+					{/if}
+
+				{/if}
+				</div>
+			</div>
+			</td>
+		</tr>
+		{/foreach}
+		</table>
+	{else}
+		{if is_array($page.form.place_list_top.education) && sizeof($page.form.place_list_top.education)}
+			<div style="padding-left: 40px"><span class="title title_normal">Популярное:</span>
+				{foreach from=$page.form.place_list_top.education item=top name=top}
+					<a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_education.string}?id={$top.PlaceID}" title="Добавить образование">{$top.Name}</a>{if $top.UsersCount > 0} <sup class="tip"> <a href="/social/community/{$top.CommunityID}/users/" title="Список пользователей" class="text11"><font color="red">{$top.UsersCount|number_format:0:'':' '}</font></a> </sup>{/if
+					}{if !$smarty.foreach.top.last},{/if}
+				{/foreach}
+			</div><br/>
+			<div style="padding-left: 40px">
+				<a href="/passport/mypage/education.php"><font color="red">Укажите свое учебное заведение</font></a>
+			</div><br/>
+		{/if}
+	{/if}
+{/if}
+
+{* Карьера *}
+{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154))}
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Место работы</span></td>
+	<td class="block_title4" style="padding-right: 10px;" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_career.string}">Редактировать</a></td>
+
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+{if is_array($page.form.place_list.general) && sizeof($page.form.place_list.general)}
+{foreach from=$page.form.place_list.general item=l}
+<tr valign="top">
+	<td style="padding-left:40px;">
+	<div>
+		<div class="profile_div">
+		
+		{if $l.PlaceCommunityUsersCount > 0}
+			{$l.PlaceTreeName}: <a href="/social/community/{$l.CommunityID}/">{$l.PlaceName}</a>{if $l.PlaceCommunityUsersCount > 0}<sup class="tip"> <font color="red">{$l.PlaceCommunityUsersCount|number_format:0:'':' '}</font></sup>{/if}
+		{else}
+			{$l.PlaceTreeName}: {$l.PlaceName}
+		{/if}
+		{if $l.PlaceCityText} ({$l.PlaceCityText}){/if}
+		{if $l.Position}<br/>Должность: {$l.Position}{/if}
+		{if $l.WorkStart} ({$l.WorkStart} - {if $l.WorkEnd}{$l.WorkEnd}{else}продолжаю работать{/if}) {/if}
+		</div>
+	</div>
+	</td>
+</tr>
+{/foreach}
+{else}
+<tr valign="top">
+	<td style="padding-left:40px;">
+	<div>
+		<div class="profile_div">
+			<a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_career.string}"><font color="red">Укажите свое рабочее место</font></a>
+		</div>
+	</div>
+	</td>
+</tr>
+{/if}
+</table>
+{/if}
+
+{* Разное *}
+{if in_array($USER->ID, array(1,3,2,6,7, 2937, 8, 28154))}
+
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Разное</span></td>
+	<td class="block_title4" style="padding-right: 10px;" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_others.string}">Редактировать</a></td>
+
+</tr>
+</table>
+	{if is_array($page.form.place_list.others) && sizeof($page.form.place_list.others)}
+		<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+		{foreach from=$page.form.place_list.others item=l}
+		<tr valign="top">
+			<td style="padding-left:20px;">
+				<b>{$l.info.PlaceTreeName}</b>
+			</td>
+		</td>
+		{foreach from=$l.data item=l}
+		<tr valign="top">
+			<td style="padding-left:40px;">
+			<div>
+				<div class="profile_div">
+				
+				{if $l.PlaceCommunityUsersCount > 0}
+					{$l.PlaceCityText}, <a href="/social/community/{$l.CommunityID}/">{$l.PlaceName}</a>{if $l.PlaceCommunityUsersCount > 0}<sup class="tip"> <font color="red">{$l.PlaceCommunityUsersCount|number_format:0:'':' '}</font></sup>{/if}
+				{else}
+					{$l.PlaceCityText}, {$l.PlaceName}
+				{/if}
+				</div>
+			</div>
+			</td>
+		</tr>
+		{/foreach}
+		{/foreach}
+		</table>
+
+	{else}
+		{if is_array($page.form.place_list_top.others) && sizeof($page.form.place_list_top.others)}
+			<div style="padding-left: 40px"><span class="title title_normal">Популярное:</span>
+				{foreach from=$page.form.place_list_top.others item=top name=top}
+					<a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_others.string}?id={$top.PlaceID}" title="Добавить место">{$top.Name}</a>{if $top.UsersCount > 0} <sup class="tip"> <a href="/social/community/{$top.CommunityID}/users/" title="Список пользователей" class="text11"><font color="red">{$top.UsersCount|number_format:0:'':' '}</font></a> </sup>{/if
+					}{if !$smarty.foreach.top.last},{/if}
+				{/foreach}
+			</div><br/>
+			<div style="padding-left: 40px">
+				<a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_others.string}"><font color="red">Укажите свое любимое место</font></a>
+			</div><br/>
+		{/if}
+	{/if}
+
+{/if}
+
+{if $page.interest}{$page.interest}{/if}
+
+{if $_show_bad_name_message}
+<div style='margin-left: 28px; margin-bottom:20px;'>
+* Вы можете поменять имя на странице <a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_person.string}">Личная информация</a>
+</div>
+{/if}
+<div style='margin-bottom:5px;'>
+<ol> 	
+<li class='tip' style=' color:#999999;'>Теперь вы можете обмениваться сообщениями друг с другом прямо на сайте.
+<p class='tip' style=' color:#999999;'>Написать человеку можно, кликнув по его фотографии.</p>
+<p class='tip' style=' color:#999999;'>О поступившем сообщении узнаете из уведомления на почту либо в правом верхнем блоке появится красная ссылка 
+"у вас 1 новое сообщение"</p></li>
+<li class='tip' style=' color:#999999;'>На вашей странице ("<a href='/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage.string}'>Моя страница</a>") появилась информация 
+о ваших данных из других разделов.
+
+<p class='tip' style=' color:#999999;'><b>"Моя работа"</b>: позволяет выводить последние вакансии (резюме), избранные вакансии (резюме)</p>
+
+<p class='tip' style=' color:#999999;'><b>"Мои объявления"</b>: позволяет выводить избранные и ваши объявления из разделов авто и недвижимость.</p>
+
+<p class='tip' style=' color:#999999;'><b>"Мои сообщения"</b>: показывает последнее поступившее сообщение</p>
+
+<p class='tip' style=' color:#999999;'><b>"Мои форумы":</b> показываются ваши темы и избранные темы</p>
+
+<p class='tip' style=' color:#999999;'>Если у вас есть почта на сайте, то выводится блок <b>"Моя почта"</b>: количество новых писем и ссылки на 
+"проверить почту", "написать письмо"</p>
+</li>
+</ol>
+</div>
+
+
+
+{*
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+
+<tr>
+	<td class="block_title4"><span>Контакты</span></td>
+	<td class="block_title4" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_contacts.string}">Редактировать</a></td>
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr valign="top">
+	<td style="padding-left:20px;">
+	<div>
+		{if $page.form.icq != ''}<div class="profile_div">ICQ: {$page.form.icq}</div>{/if}
+		{if $page.form.skype != ''}<div class="profile_div">Skype: {$page.form.skype}</div>{/if}
+		{if $page.form.site != ''}<div class="profile_div">Сайт: <a href="{$page.form.site|url}" target="_blank">{$page.form.site|url:false}</a></div>{/if}
+		{if $page.form.phone != ''}<div class="profile_div">Телефон: {$page.form.phone}</div>{/if}
+	</div>
+	</td>
+</tr>
+</table>
+
+<br />
+
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr>
+	<td class="block_title4"><span>Место работы</span></td>
+	<td class="block_title4" align="right"><a href="/{$CURRENT_ENV.section}/{$CONFIG.files.get.mypage_person.string}">Редактировать</a>;</td>
+
+</tr>
+</table>
+<table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px;">
+<tr valign="top">
+	<td style="padding-left:20px;">
+	<div>
+		{if $page.form.workplace != ''}<div class="profile_div">Место работы: {$page.form.workplace}</div>{/if}
+		{if $page.form.position != ''}<div class="profile_div">Должность: {$page.form.position}</div>{/if}
+	</div>
+	</td>
+</tr>
+</table>
+
+*}
+
+

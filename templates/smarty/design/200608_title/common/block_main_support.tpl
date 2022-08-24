@@ -1,0 +1,2 @@
+<center>Если у вас возникли трудности при размещении или удалении объявлений,<br/>позвоните по телефону техподдержки (351) 7-0000-74 или воспользуйтесь <font style="cursor: pointer; text-decoration: underline;" title="Открыть" target="ublock" onclick="window.open('http://74.ru/feedback/?from=744&target=4', 'ublock','width=480,height=410,resizable=1,menubar=0,scrollbars=0').focus();">формой обратной связи</font>.<br/>
+Техподдержка по телефону осуществляется в будние дни с 8:30 до 18:00.</center>

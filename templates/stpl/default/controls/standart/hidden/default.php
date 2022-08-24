@@ -1,0 +1,1 @@
+<input class="ctrl_<?=$vars['this']->GetName()?>" type="hidden" id="<?=$vars['this']->GetID()?>_hidden" name="<?=$vars['this']->GetID()?>_hidden" value="<?=htmlspecialchars($vars['this']->GetTitle());?>">

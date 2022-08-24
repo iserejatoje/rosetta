@@ -1,0 +1,457 @@
+<?php
+
+ini_set('max_execution_time', '60');
+
+$shares_error_code = 0;
+define('ERR_A_SHARES_MASK', 0x00580000);
+
+define('ERR_A_SHARES_EMPTY_SHORTTITLE', ERR_A_SHARES_MASK | $error_code++);
+UserError::$Errors[ERR_A_SHARESS_EMPTY_SHORTTITLE] = 'Не указан краткий заголовок новости';
+
+define('ERR_A_SHARES_EMPTY_TITLE', ERR_A_SHARES_MASK | $error_code++);
+UserError::$Errors[ERR_A_SHARES_EMPTY_TITLE] = 'Не указан заголовок новости';
+
+define('ERR_A_SHARES_EMPTY_ANNOUNCE_TEXT', ERR_A_SHARES_MASK | $error_code++);
+UserError::$Errors[ERR_A_SHARES_EMPTY_ANNOUNCE_TEXT] = 'Не указан краткий анонс новости';
+
+define('ERR_A_SHARES_EMPTY_TEXT', ERR_A_SHARES_MASK | $error_code++);
+UserError::$Errors[ERR_A_SHARES_EMPTY_TEXT] = 'Не указан текст новости';
+
+define('ERR_A_SHARES_NOT_FOUND', ERR_A_SHARES_MASK | $error_code++);
+UserError::$Errors[ERR_A_SHARES_NOT_FOUND] = 'Новость не найдена';
+
+define('ERR_A_BANNERS_ERROR_UPLOAD_IMAGE', ERR_A_SHARES_MASK | $error_code++);
+UserError::$Errors[ERR_A_BANNERS_ERROR_UPLOAD_IMAGE] = 'Ошибка загрузки изображения';
+
+
+class AdminModule
+{
+	static $TITLE = 'Акции';
+
+	static $ROW_ON_PAGE = 20;
+	static $PAGES_ON_PAGE = 5;
+
+	private $_db;
+	private $_config;
+	private $_aconfig;
+	private $_page;
+	private $_id;
+	private $_title;
+	private $_params;
+
+	private $shareMgr;
+
+	function __construct($config, $aconfig, $id)
+	{
+
+		global $CONFIG,$DCONFIG, $OBJECTS;
+		LibFactory::GetMStatic('shares', 'sharemgr');
+
+		LibFactory::GetStatic("data");
+		LibFactory::GetStatic("ustring");
+
+		$this->_id = &$id;
+		$this->_config = &$config;
+
+		if ($this->_config['root']) {
+				$this->_id = ($this->_config['root']);
+		}
+
+		$this->_db = DBFactory::GetInstance($this->_config['db']);
+
+		if (empty($_GET['action']) && empty($_POST['action']))
+				Response::Redirect('?'.$DCONFIG['SECTION_ID_URL'].'&action=shares');
+
+		$this->shareMgr = ShareMgr::getInstance(false);
+
+		App::$Title->AddScript('/resources/scripts/themes/frameworks/jquery/jqueryui-1.8.23/jquery-ui-1.8.23.min.js');
+		App::$Title->AddScript('/resources/scripts/themes/frameworks/jquery/jqueryui-1.8.23/jquery.ui.datepicker-ru.js');
+		App::$Title->AddScript('/resources/scripts/themes/frameworks/jquery/jqueryui-1.8.23/jquery.ui.timepicker.js');
+		App::$Title->AddStyle('/resources/scripts/themes/frameworks/jquery/jqueryui-1.8.23/css/ui-lightness/jquery-ui-1.8.23.custom.css');
+		App::$Title->AddStyle('/resources/scripts/themes/frameworks/jquery/jqueryui-1.8.23/jquery.ui.timepicker.css');
+	}
+
+	function Action()
+	{
+		if($this->_PostAction()) return;
+		$this->_GetAction();
+	}
+
+	function GetPage()
+	{
+		global $DCONFIG, $OBJECTS;
+		switch($this->_page)
+		{
+			case 'shares':
+				$this->_title = "Список акций";
+				$html = $this->_GetShares();
+				break;
+			case 'new_share':
+				$this->_title = "Добавить акцию";
+				$html = $this->_GetShareNew();
+				break;
+			case 'edit_share':
+				$this->_title = "Редактировать акцию";
+				$html = $this->_GetShareEdit();
+				break;
+			case 'ajax_share_toggle_visible':
+				$this->_GetAjaxToggleShareVisible();
+				break;
+			case 'delete_share':
+				$this->_GetShareDelete();
+				Response::Redirect('?'.$DCONFIG['SECTION_ID_URL'].'&action=shares');
+				break;
+			default:
+				$this->_title = "Акции";
+				$html = $this->_GetShares();
+				break;
+		}
+		return $html;
+	}
+
+	function GetTabs()
+	{
+		return array(
+			'tabs' => array(
+				array('name' => 'action', 'value' => 'shares', 'text' => 'Акции'),
+			),
+			'selected' => $this->_page
+		);
+	}
+
+	function GetTitle()
+	{
+		return $this->_title;
+	}
+
+	private function _PostAction()
+	{
+		global $DCONFIG, $OBJECTS;
+
+		switch($_POST['action'])
+		{
+			case 'new_share':
+				if ($this->_PostShareNew())
+					Response::Redirect('?'.$DCONFIG['SECTION_ID_URL'].'&action=shares');
+				break;
+			case 'edit_share':
+				if ($this->_PostShareEdit())
+					Response::Redirect('?'.$DCONFIG['SECTION_ID_URL'].'&action=shares');
+				break;
+			case 'save_shares':
+				if ($this->_PostSaveShares())
+					Response::Redirect('?'.$DCONFIG['SECTION_ID_URL'].'&action=shares');
+				break;
+		}
+		return false;
+	}
+
+	private function _GetAction()
+	{
+		global $DCONFIG;
+		switch($_GET['action'])
+		{
+			default:
+				$this->_page = $_GET['action'];
+				break;
+		}
+	}
+
+	private function _GetShares()
+	{
+		global $DCONFIG, $CONFIG;
+
+		$page		= App::$Request->Get['page']->Int(0, Request::UNSIGNED_NUM);
+
+		$filter = array(
+			'flags' => array(
+				'objects' 	=> true,
+				'IsVisible' => -1,
+				'SectionID' => $this->_id,
+			),
+			'field' => array(
+				'Created',
+			),
+			'dir' => array(
+				'DESC',
+			),
+			// 'offset'=> ($page - 1) * self::$ROW_ON_PAGE,
+			// 'limit' => self::$ROW_ON_PAGE,
+			// 'calc'	=> true,
+		);
+
+		// list($shares, $count) = $this->shareMgr->GetShares($filter);
+		$shares = $this->shareMgr->GetShares($filter);
+
+		// $pages = Data::GetNavigationPagesNumber(
+		// 	self::$ROW_ON_PAGE, self::$PAGES_ON_PAGE, $count, $page,
+		// 	"?section_id=". $this->_id ."&action=shares&page=@p@");
+		return STPL::Fetch('admin/modules/shares/shares_list', array(
+			'shares' => $shares,
+			// 'pages' => $pages,
+			'section_id' => $this->_id,
+		));
+	}
+
+
+	private function _GetShareNew() {
+		global $DCONFIG, $CONFIG, $OBJECTS;
+
+		$form = array();
+
+		$form['SectionID'] = $this->_id;
+
+		if ( App::$Request->requestMethod === Request::M_POST )
+		{
+			$form['Text']      = App::$Request->Post['Text']->Value();
+			$form['TitleText'] = App::$Request->Post['TitleText']->Value();
+			$form['Title']     = App::$Request->Post['Title']->Value();
+			$form['Note']      = App::$Request->Post['Note']->Value();
+			$form['Link']      = App::$Request->Post['Link']->Value();
+			$form['IsVisible'] = App::$Request->Post['IsVisible']->Enum(0, array(0,1));
+		}
+		else
+		{
+			$form['Text'] = '';
+			$form['TitleText'] = '';
+			$form['Title']     = '';
+			$form['Note']      = '';
+			$form['Link']      = '';
+			$form['IsVisible'] = 0;
+		}
+
+		return STPL::Fetch('admin/modules/shares/edit_share', array(
+			'section_id' 	=> $this->_id,
+			'form' 			=> $form,
+			'action' 		=> 'new_share',
+		));
+	}
+
+
+	private function _GetShareEdit() {
+		global $DCONFIG, $CONFIG, $OBJECTS;
+
+		$ShareID	= App::$Request->Get['id']->Int(0, Request::UNSIGNED_NUM);
+
+		$share = $this->shareMgr->GetShare($ShareID);
+		if ($share === null)
+		{
+			UserError::AddErrorIndexed('global', ERR_A_SHARES_NOT_FOUND);
+			return STPL::Fetch('admin/modules/shares/edit_share');
+		}
+
+		$form['ShareID']	= $share->ID;
+		$form['SectionID'] 	= $this->_id;
+		$form['Thumb'] 		= $share->Thumb;
+		$form['SmallThumb'] = $share->SmallThumb;
+
+
+		if ( App::$Request->requestMethod === Request::M_POST )
+		{
+			$form['Date']      = App::$Request->Post['Date']->Datestamp();
+			$form['Text']      = App::$Request->Post['Text']->Value();
+			$form['TitleText'] = App::$Request->Post['TitleText']->Value();
+			$form['Title']     = App::$Request->Post['Title']->Value();
+			$form['Note']      = App::$Request->Post['Note']->Value();
+			$form['Link']      = App::$Request->Post['Link']->Value();
+			$form['IsVisible'] = App::$Request->Post['IsVisible']->Enum(0, array(0,1));
+		}
+		else
+		{
+			$form['Text']      = $share->Text;
+			$form['TitleText'] = $share->TitleText;
+			$form['Title']     = $share->Title;
+			$form['Note']      = $share->Note;
+			$form['Link']      = $share->Link;
+			$form['IsVisible'] = $share->IsVisible;
+		}
+
+		return STPL::Fetch('admin/modules/shares/edit_share', array(
+			'section_id' 	=> $this->_id,
+			'form' 			=> $form,
+			'action' 		=> 'edit_share',
+		));
+	}
+
+	private function _GetAjaxToggleShareVisible()
+	{
+		include_once ENGINE_PATH.'include/json.php';
+		$json = new Services_JSON();
+
+		$ShareID	= App::$Request->Get['id']->Int(0, Request::UNSIGNED_NUM);
+		$share = $this->shareMgr->GetShare($ShareID);
+		if ($share === null)
+		{
+			$json->send(array('status' => 'error'));
+			exit;
+		}
+
+		$share->IsVisible = !$share->IsVisible;
+		$share->Update();
+
+		$json->send(array(
+			'status' => 'ok',
+			'visible' => (int) $share->IsVisible,
+			'shareid' => $ShareID,
+		));
+		exit;
+	}
+
+	private function _GetShareDelete()
+	{
+		$ShareID	= App::$Request->Get['id']->Int(0, Request::UNSIGNED_NUM);
+		$share = $this->shareMgr->GetShare($ShareID);
+		if ($share === null)
+			return;
+
+		$share->Remove();
+		return;
+	}
+
+	private function _PostShareNew()
+	{
+		global $CONFIG, $OBJECTS;
+
+		$Text      = App::$Request->Post['Text']->Value();
+		$TitleText = App::$Request->Post['TitleText']->Value();
+		$Note      = App::$Request->Post['Note']->Value();
+		$Link      = App::$Request->Post['Link']->Value();
+		$IsVisible = App::$Request->Post['IsVisible']->Enum(0, array(0,1));
+
+		if ($Text == "")
+			UserError::AddErrorIndexed('Text', ERR_A_SHARES_EMPTY_TEXT);
+
+		if(UserError::IsError())
+			return false;
+
+		$Data = array(
+			'SectionID' => $this->_id,
+			'Text'      => $Text,
+			'Title'     => $Title,
+			'TitleText' => $TitleText,
+			'Note'      => $Note,
+			'Link'      => $Link,
+			'IsVisible' => $IsVisible,
+		);
+
+		$share = new Share($Data);
+
+		try {
+			$share->UploadThumb();
+		} catch(MyException $e) {
+			if( $e->getCode() >  0 )
+				UserError::AddErrorWithArgsIndexed('Thumb', $e->getCode(), $e->getUserErrorArgs());
+			else
+				UserError::AddErrorIndexed('Thumb',ERR_A_BANNERS_ERROR_UPLOAD_IMAGE);
+
+			$share->Thumb = null;
+			return false;
+		}
+
+		try {
+			$share->UploadSmallThumb();
+		} catch(MyException $e) {
+			if( $e->getCode() >  0 )
+				UserError::AddErrorWithArgsIndexed('SmallThumb', $e->getCode(), $e->getUserErrorArgs());
+			else
+				UserError::AddErrorIndexed('SmallThumb',ERR_A_BANNERS_ERROR_UPLOAD_IMAGE);
+
+			$share->SmallThumb = null;
+			return false;
+		}
+
+		$share->Update();
+
+		return true;
+	}
+
+	private function _PostShareEdit() {
+		global $CONFIG, $OBJECTS;
+
+		$ShareID	= App::$Request->Post['id']->Int(0, Request::UNSIGNED_NUM);
+		$share = $this->shareMgr->GetShare($ShareID);
+		if ($share === null)
+		{
+			UserError::AddErrorIndexed('global', ERR_A_SHARES_NOT_FOUND);
+			return STPL::Fetch('admin/modules/share/edit_article');
+		}
+
+		$Text      = App::$Request->Post['Text']->Value();
+		$Title     = App::$Request->Post['Title']->Value();
+		$TitleText = App::$Request->Post['TitleText']->Value();
+		$Note      = App::$Request->Post['Note']->Value();
+		$Link      = App::$Request->Post['Link']->Value();
+		$IsVisible = App::$Request->Post['IsVisible']->Enum(0, array(0,1));
+
+		if ($Text == "")
+		{
+			UserError::AddErrorIndexed('Text', ERR_A_SHARES_EMPTY_TEXT);
+		}
+
+
+		if(UserError::IsError())
+			return false;
+
+		$del_thumb 		= App::$Request->Post['del_thumb']->Enum(0, array(0,1));
+		$del_smallthumb 		= App::$Request->Post['del_smallthumb']->Enum(0, array(0,1));
+
+
+		$share->Text			= $Text;
+		$share->Title			= $Title;
+		$share->TitleText		= $TitleText;
+		$share->Note			= $Note;
+		$share->Link			= $Link;
+		$share->IsVisible		= $IsVisible;
+
+		if ($del_thumb || is_file($_FILES['Thumb']['tmp_name']))
+			$share->Thumb = null;
+		if ($del_smallthumb || is_file($_FILES['SmallThumb']['tmp_name']))
+			$share->SmallThumb = null;
+
+		try {
+			$share->UploadThumb();
+		} catch(MyException $e) {
+			if( $e->getCode() >  0 )
+				UserError::AddErrorWithArgsIndexed('Thumb', $e->getCode(), $e->getUserErrorArgs());
+			else
+				UserError::AddErrorIndexed('Thumb',ERR_A_BANNERS_ERROR_UPLOAD_IMAGE);
+
+			$share->Thumb = null;
+			return false;
+		}
+
+		try {
+			$share->UploadSmallThumb();
+		} catch(MyException $e) {
+			if( $e->getCode() >  0 )
+				UserError::AddErrorWithArgsIndexed('SmallThumb', $e->getCode(), $e->getUserErrorArgs());
+			else
+				UserError::AddErrorIndexed('SmallThumb',ERR_A_BANNERS_ERROR_UPLOAD_IMAGE);
+
+			$share->SmallThumb = null;
+			return false;
+		}
+
+		$share->Update();
+
+		return true;
+	}
+
+	private function _PostSaveShares()
+	{
+		$orders = App::$Request->Post['Ord']->AsArray(array(), Request::UNSIGNED_NUM);
+		if (!is_array($orders) || count($orders) == 0)
+			return true;
+
+		foreach($orders as $shareid => $value)
+		{
+			$share = $this->shareMgr->GetShare($shareid);
+			if ($share === null)
+				continue;
+
+			$share->Ord = $value;
+			$share->Update();
+		}
+		return true;
+	}
+}

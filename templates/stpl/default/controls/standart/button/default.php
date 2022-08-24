@@ -1,0 +1,1 @@
+<input type="<?=$vars['this']->GetType()?>" name="<?=$vars['this']->GetID()?>_btn" value="<?=$vars['this']->GetTitle()?>"<? if($n=$vars['this']->GetJS()):?> onclick="<?=htmlspecialchars($n)?>"<?endif;?>>

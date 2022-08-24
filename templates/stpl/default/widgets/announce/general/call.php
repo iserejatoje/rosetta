@@ -1,0 +1,1 @@
+<div class="block-title make-call-number"><?=$vars['phone']?></div>

@@ -1,0 +1,477 @@
+<?
+
+require_once ($CONFIG['engine_path'].'configure/lib/mailsender/error.php');
+
+class MailSender
+{
+	const BT_PLAIN 			= 'text/plain';
+	const BT_HTML 			= 'text/html';
+	const BT_ALTERNATIVE 	= 'multipart/alternative';
+	const BT_MIXED 			= 'multipart/mixed';
+
+	private $charsets  = null;
+	private $_address   = array();
+	private $_headers   = array();
+	private $_body      = array();
+	private $__to       = "";
+	private $__subject  = "";
+	private $__header   = "";
+	private $__body     = "";
+
+	private $__config = array(
+						'db' => 'mail_sender',
+						'tables' => array(
+							'mail' => 'mail_queue',
+						),
+						'order' => 'ASC', //Порядок обработки сообщений на отсылку
+						'max_body_size' => 10240, // Максимальный размер тела сообщения для отложенной отправки
+	);
+
+	private $_trusted_headers = array(
+		'X-Mailer',
+		'Reply-To',
+		'Disposition-Notification-To',
+		'X-Priority',
+		'Subject',
+	);
+	public $_errno     = 0;
+	public $charset     = "UTF-8";
+	public $body_type   = "multipart/mixed";
+
+	function __construct()
+	{
+		$this->charsets = LibFactory::GetInstance('charsets');
+		if($this->charset !== null)
+			$this->charsets->charset = $this->charset;
+	}
+
+	function __destruct()
+	{
+	}
+
+	private function _realsend($to, $subject, $body, $header)
+	{
+		if(@mail($to, $subject, $body, $header) )
+		{
+			$this->errno = ERR_L_MAIL_SENT_SUCCESSFULLY;
+			return true;
+		}
+		else
+		{
+			$this->errno = ERR_L_MAIL_SEND_ERROR;
+			return false;
+		}
+	}
+
+	/// Отправить одно сообщение из базы
+	///Статусы обработки:
+	///  0 - не обработан
+	///  1 - обрабатывается
+	///  2 - не удалось обработать
+	public function SendFromDB($status = 0) {
+
+		$db = DBFactory::GetInstance($this->__config['db']);
+
+		$sql = 'SELECT id, email, subject, msg, header, attempt FROM '.$this->__config['tables']['mail'];
+		$sql.= ' WHERE status = '.$status;
+		$sql.= ' ORDER BY dt '.$this->__config['order'];
+		$sql.= ' LIMIT 1';
+
+		if (false === ($res = $db->query($sql)))
+			return false;
+
+		while (false != ($row = $res->fetch_assoc()))
+		{
+			$sql = 'UPDATE '.$this->__config['tables']['mail'].' SET ';
+			$sql.= ' status = 1';
+			$sql.= ' WHERE id=\''.addslashes($row['id']).'\'';
+			
+			if (false === ($res = $db->query($sql)))
+				return false;
+			
+			if( @mail($row['email'], $row['subject'], $row['msg'], $row['header']) || $row['attempt']+1 > 5) 
+			{
+				$sql = 'DELETE FROM '.$this->__config['tables']['mail'];
+				$sql.= ' WHERE id=\''.addslashes($row['id']).'\'';
+				
+				return $db->query($sql);
+			}
+			else
+			{
+				$sql = 'UPDATE '.$this->__config['tables']['mail'].' SET ';
+				$sql.= ' status = 2, ';
+				$sql.= ' attempt = attempt + 1';
+				$sql.= ' WHERE id=\''.addslashes($row['id']).'\'';
+				
+				return $db->query($sql);
+			}
+			
+			if ( null !== ( $errors = error_get_last() ) )
+			{
+				foreach ( $errors as $error )
+				{
+					if ( $error['file'] == __FILE__ && $error['line'] == __LINE__ - 21 ) //  Менять кол-во строк, при изменении места подожения @mail()
+						error_log("MailSender send error [". $error['type'] ."] with message: ". $error['message'] ."\n");
+				}
+			}
+		}
+		return false;
+	}
+
+	private function _delayed_send($to, $subject, $body, $header)
+	{
+		$db = DBFactory::GetInstance($this->__config['db']);
+		$sql = "INSERT INTO ".$this->__config['tables']['mail']." (id, email, subject, msg, header)";
+		$sql.= " VALUES('".addslashes( md5(uniqid(rand(), true).$_SERVER['REMOTE_ADDR'].microtime(true)) )."'";
+		$sql.= " ,'".addslashes($to)."'";
+		$sql.= " ,'".addslashes($subject)."'";
+		$sql.= " ,'".addslashes($body)."'";
+		$sql.= " ,'".addslashes($header)."'";
+		$sql.= ")";
+
+		$result = $db->query($sql);
+		if ($result)
+		{
+			$this->errno = ERR_L_MAIL_SENT_SUCCESSFULLY;
+			return true;
+		}
+		else
+		{
+			$this->errno = ERR_L_MAIL_SEND_ERROR;
+			return false;
+		}
+	}
+
+	//$Immediate = true - Немедленная отправка
+	private function __send($body = true, $header = true, $Immediate = false)
+	{
+		if(count($this->_address['to'])<1)
+		{
+			$this->errno = ERR_L_MAIL_FIELD_TO_IS_EMPTY;
+			return false;
+		}
+		if(count($this->_address['from'])<1)
+		{
+			$this->errno = ERR_L_MAIL_FIELD_FROM_IS_EMPTY;
+			return false;
+		}
+
+		if($body === true)
+			$this->__generate_body();
+		if($header === true)
+			$this->__generate_header();
+
+		//Пока написано для теста
+		if ( !$Immediate && strlen($this->__body) <= $this->__config['max_body_size'] )
+			return $this->_delayed_send($this->__to, $this->__subject, $this->__body, $this->__header);
+		else
+			return $this->_realsend($this->__to, $this->__subject, $this->__body, $this->__header);
+	}
+
+	private function __generate_body()
+	{
+		$this->__body = "";
+
+		if(count($this->_body)==0)
+		{
+			$this->__add_header('Content-type', 'text/plain; charset='. $this->charset);
+			return true;
+		}
+
+		if(count($this->_body)==1)
+		{
+			foreach($this->_body as $k=>$v)
+			{
+				$this->__add_header('Content-type', $v['type'] . "; charset=". ($v['charset']?$v['charset']:$this->charset) );
+				$this->__add_header('Content-Transfer-Encoding', "base64");
+				$this->__body = chunk_split(base64_encode($v['value']))."\r\n";
+			}
+		}
+
+		if(count($this->_body)>1)
+		{
+			$boundary = "--" . md5(time() . rand(1,400));
+			if($this->body_type == self::BT_MIXED || $this->body_type == self::BT_ALTERNATIVE)
+				$this->__add_header('Content-type', $this->body_type . ";\r\n\tboundary=\"". $boundary ."\"");
+			else
+				$this->__add_header('Content-type', self::BT_MIXED . ";\r\n\tboundary=\"". $boundary ."\"");
+			foreach($this->_body as $k=>$v)
+			{
+				$this->__body .= "--" . $boundary . "\r\n";
+				if($v['attachment'])
+				{
+					//-------- перебираем все вложения
+					$this->__body.= "Content-Type: " . $v['type'] . "; name=\"" . $this->charsets->EncodeMimeString($v['name']) . "\"\r\n";
+					$this->__body.= "Content-Transfer-Encoding: base64\r\n";
+					$this->__body.= "Content-Disposition: attachment; filename=\"" . $this->charsets->EncodeMimeString($v['name']) . "\"\r\n\r\n";
+					$this->__body.= chunk_split(base64_encode($v['value']))."\r\n";
+				}                                            
+				else
+				{
+					//-------- текст сообщения
+					$this->__body.= "Content-Type: ". $v['type'] . "; charset=". ($v['charset']?$v['charset']:$this->charset) ."\r\n";
+					$this->__body.= "Content-Transfer-Encoding: base64\r\n\r\n";
+					$this->__body.= chunk_split(base64_encode($v['value']))."\r\n";
+				}
+			}
+			$this->__body .= "--" . $boundary . "--\r\n";
+		}
+
+		return true;
+	}
+
+	private function __generate_header()
+	{
+		$this->__header = "";
+		$this->__to = "";
+		$this->__subject = "";
+
+		$this->__header.= "MIME-Version: 1.0\r\n";
+
+		$this->__to = $this->__write_addr_string('to', true);
+		$txt = $this->__write_addr_string('from');
+		if($txt != "")
+			$this->__add_header('From', $txt);
+		$txt = $this->__write_addr_string('cc');
+		if($txt != "")
+			$this->__add_header('Cc', $txt);
+		$txt = $this->__write_addr_string('bcc');
+		if($txt != "")
+			$this->__add_header('Bcc', $txt);
+
+		if(count($this->_headers)>0)
+			foreach($this->_headers as $k=>$v)
+			{
+				if( $k == 'Subject' )
+					$this->__subject = $v['encode'] ? $this->charsets->EncodeMimeString($v['value']) : $v['value'];
+				else
+					$this->__header .= $k .": ". ($v['encode'] ? $this->charsets->EncodeMimeString($v['value']) : $v['value']) . "\r\n";
+			}
+		return true;
+	}
+
+	private function __add_header($name = null, $value = null, $encode = false)
+	{
+		if( $name === null || $value === null )
+			return false;
+
+		$this->_headers[$name] = array(
+			'value' => $value,
+			'encode' => $encode,
+		);
+		return true;
+	}
+
+	private function __delete_header($name = null)
+	{
+		if( $name === null )
+			return false;
+
+		unset($this->_headers[$name]);
+		return true;
+	}
+
+	private function __isset_header($name = null)
+	{
+		if( $name === null )
+			return false;
+
+		return isset($this->_headers[$name]);
+	}
+
+	private function __add_body($name = null, $value = null, $type = null, $charset = null, $attachment = false)
+	{
+		if( $name === null )
+			return false;
+		if( $type === null )
+			$type = "text/plain";
+
+		$this->_body[$name] = array(
+			'name' => $name,
+			'value' => $value,
+			'type' => $type,
+			'charset' => $charset,
+			'attachment' => $attachment,
+		);
+		return true;
+	}
+
+	private function __delete_body($name = null)
+	{
+		if( $name === null )
+			return false;
+
+		unset($this->_body[$name]);
+		return true;
+	}
+
+	private function __isset_body($name = null)
+	{
+		if( $name === null )
+			return false;
+
+		return isset($this->_body[$name]);
+	}
+
+	private function __add_address($which = 'to', $email = null, $name = null, $encode = true)
+	{
+		if( !in_array($which, array('from', 'to', 'cc', 'bcc')) )
+			return false;
+		if( $email === null )
+			return false;
+
+		$this->_address[$which][$email] = array(
+			'email' => $email,
+			'name' => $name,
+			'encode' => $encode,
+		);
+		return true;
+	}
+
+	private function __isset_address($which = 'to', $email = null)
+	{
+		if( !in_array($which, array('from', 'to', 'cc', 'bcc')) )
+			return false;
+		if( $email === null )
+			return false;
+
+		return isset($this->_address[$which][$email]);
+	}
+
+	private function __delete_address($which = 'to', $email = null)
+	{
+		if( !in_array($which, array('from', 'to', 'cc', 'bcc')) )
+			return false;
+		if( $email === null )
+			return false;
+
+		unset($this->_address[$which][$email]);
+		return true;
+	}
+
+	private function __write_addr_string($which = 'to')
+	{
+		$str = array();
+		if(count($this->_address[$which])>0)
+		{
+			foreach($this->_address[$which] as $v)
+			{
+				if($v['name'] === null || $v['name'] == "NIL" || $v['name'] == "" || empty($v['name']))
+					$str[] = $v['email'];
+				else
+					$str[] = ($v['encode']?$this->charsets->EncodeMimeString($v['name']):$v['name'])." <".$v['email'].">";
+			}
+		}
+		if(count($str)>0)
+			return implode(", ", $str);
+		else
+			return "";
+	}
+
+
+
+	public function Send($body = true, $header = true, $Immediate = false)
+	{
+		if( !$this->__isset_header('X-Mailer') )
+			$this->__add_header('X-Mailer', 'WebMail (v1.00)');
+
+		// пусть отправляется сразу, а то чота лочиться таблица в БД стала часто.
+		$Immediate = true;
+		return $this->__send($body, $header, $Immediate);
+	}
+
+	//немедленная отправка
+	public function SendImmediate($body = true, $header = true)
+	{
+		if( !$this->__isset_header('X-Mailer') )
+			$this->__add_header('X-Mailer', 'WebMail (v1.00)');
+
+		return $this->__send($body, $header, true);
+	}
+
+	public function AddHeader($name = null, $value = null, $encode = false)
+	{
+		if( !in_array($name, $this->_trusted_headers) )
+			return false;
+
+		return $this->__add_header($name, $value, $encode);
+	}
+
+	public function DeleteHeader($name = null)
+	{
+		if( !in_array($name, $this->_trusted_headers) )
+			return false;
+
+		return $this->__delete_header($name);
+	}
+
+	public function IssetHeader($name = null)
+	{
+		if( !in_array($name, $this->_trusted_headers) )
+			return false;
+
+		return $this->__isset_header($name);
+	}
+
+	public function AddBody($name = null, $value = null, $type = null, $charset = null, $attachment = false)
+	{
+		return $this->__add_body($name, $value, $type, $charset, $attachment);
+	}
+
+	public function AddAttachment($name, $path)
+	{
+		LibFactory::GetStatic('filemagic');
+		if (empty($path))
+			return false;
+
+		try {
+			$mt = FileMagic::GetFileInfo_NEW($path);
+			$file = file_get_contents($path);
+
+			$type = $mt['mime_type'];
+			return $this->AddBody($name, $file, $type, null, true);
+		} catch(MyException $e) {
+			return false;
+		}
+	}
+
+	public function DeleteBody($name = null)
+	{
+		return $this->__delete_body($name);
+	}
+
+	public function IssetBody($name = null)
+	{
+		return $this->__isset_body($name);
+	}
+
+	public function AddAddress($which = 'to', $email = null, $name = null, $encode = true)
+	{
+		return $this->__add_address($which, $email, $name, $encode);
+	}
+
+	public function IssetAddress($which = 'to', $email = null)
+	{
+		return $this->__isset_address($which, $email);
+	}
+
+	public function DeleteAddress($which = 'to', $email = null)
+	{
+		return $this->__delete_address($which, $email);
+	}
+
+	public function SetCharset($value)
+	{
+		$this->charset = $value;
+		$this->charsets->charset = $this->charset;
+	}
+
+	public function Error()
+	{
+		global $ERROR;
+		return (isset($ERROR[$this->errno])?$ERROR[$this->errno]:"");
+	}
+
+}
+
+?>

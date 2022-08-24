@@ -1,0 +1,1 @@
+<?return array(	'templates' => array(		'default' => 'announce/guests/default.tpl',		'users_block' => 'design/200901_social/mod_passport/user_small_block.tpl',	),		'limit' => 3,);?>

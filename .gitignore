@@ -1,0 +1,12 @@
+/index.php
+/config.php
+/resources
+/robots.txt
+/shell.sh
+/*.zip
+*.sql
+.htaccess
+readme.md
+.idea
+shell
+vendor

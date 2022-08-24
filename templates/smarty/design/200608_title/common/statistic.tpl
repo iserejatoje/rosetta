@@ -1,0 +1,1 @@
+За 30 дней <b>{$CURRENT_ENV.site.domain}</b> посетило <noindex><a href="http://top100.rambler.ru/cgi-bin/stats_top100.cgi?id={$CURRENT_ENV.site.rambler_id}&page=2&subpage=2&site=1&datarange=2" target="_blank" class="a11" ><b>{$STATISTIC.clients|number_format:0:' ':' '}</b></a></noindex> человек&nbsp;

@@ -1,0 +1,2 @@
+<input type="checkbox" id="<?=$vars['this']->GetID()?>_value" name="<?=$vars['this']->GetID()?>_value" value="checked"<?if($vars['this']->GetChecked()):?> checked="checked"<?endif?>><label for="<?=$vars['this']->GetID()?>_value"> <?=$vars['this']->GetTitle();?></label>
+<input type="hidden" name="<?=$vars['this']->GetID()?>_checkbox" value="1"><? // надо обязательно как флаг присутствия чекбокса ?>

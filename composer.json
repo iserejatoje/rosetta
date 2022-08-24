@@ -1,0 +1,7 @@
+{
+    "require": {
+        "maxmind-db/reader": "~1.0",
+        "clausnz/php-helpers": "^0.2.1",
+        "phpmailer/phpmailer": "^6.0"
+    }
+}

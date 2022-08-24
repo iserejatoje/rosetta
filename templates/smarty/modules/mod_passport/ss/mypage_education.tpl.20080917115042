@@ -1,0 +1,110 @@
+
+<form style="margin:0px" method="POST">
+<input type="hidden" name="action" value="mypage_place" />
+<input type="hidden" name="motive" value="education" />
+<div class="title" style="padding: 5px;">Образование</div>
+
+<div align="center"><b>Высшее образование</b></div>
+
+{if is_array($page.form.education_place_top_arr[$page.PT_HIGHER_EDUCATION]) && sizeof($page.form.education_place_top_arr[$page.PT_HIGHER_EDUCATION])}
+	<div style="padding-left: 40px"><span class="title title_normal">Популярное:</span>
+		{foreach from=$page.form.education_place_top_arr[$page.PT_HIGHER_EDUCATION] item=top name=top}
+			<a href="javascript:void(0)" title="Добавить место" onclick="mod_passport.getPlaceForm('education',  {php}echo PlaceMgr::PT_HIGHER_EDUCATION;{/php}, $('#append_education_{php}echo PlaceMgr::PT_HIGHER_EDUCATION;{/php}'), {$top.PlaceID})">{$top.Name}</a>{if $top.UsersCount > 0} <sup class="tip"> <a href="/social/community/{$top.CommunityID}/users/" title="Список пользователей" class="text11" style="color: red">{$top.UsersCount|number_format:0:'':' '}</a> </sup>{/if
+			}{if !$smarty.foreach.top.last},{/if}
+		{/foreach}
+	</div><br/>
+{/if}
+
+{foreach from=$page.form.education_place_arr[$page.PT_HIGHER_EDUCATION] item=l key=k}
+
+{*
+
+	with_suggest - Использовать контекстный список
+	country_arr - Список стран
+	region_arr - Список регоинов
+	city_arr - Список городов
+	grad_years_arr - Список года выпуска
+	placeinfo - Информация о месте
+
+*}
+
+{php}
+
+	$this->_tpl_vars['res'] = array(
+		'with_suggest'		=> true,
+		'country_arr'		=> &$this->_tpl_vars['page']['form']['country_arr'],
+		'region_arr'		=> isset($this->_tpl_vars['page']['form']['region_arr'][$this->_tpl_vars['l']['country']]) ? $this->_tpl_vars['page']['form']['region_arr'][$this->_tpl_vars['l']['country']] : array(),
+		'city_arr'			=> isset($this->_tpl_vars['page']['form']['city_arr'][$this->_tpl_vars['l']['region']]) ? $this->_tpl_vars['page']['form']['city_arr'][$this->_tpl_vars['l']['region']] : array(),
+		'years_arr'		=> &$this->_tpl_vars['page']['form']['years_arr'],
+		'grad_years_arr'	=> &$this->_tpl_vars['page']['form']['grad_years_arr'],
+		'status_arr'		=> &$this->_tpl_vars['page']['form']['status_arr'],
+		'course_form_arr'	=> &$this->_tpl_vars['page']['form']['course_form_arr'],
+		'placeinfo'			=> &$this->_tpl_vars['l'],
+		'position'			=> $this->_tpl_vars['k'],
+	);
+
+{/php}
+
+	{include file=$TEMPLATE.ssections.place.education res = $res}
+	
+{/foreach}
+	<div align="center">
+		<a id="append_education_{$page.PT_HIGHER_EDUCATION}" href="javascript:void(0)" 
+			onclick="mod_passport.getPlaceForm('education', {php}echo PlaceMgr::PT_HIGHER_EDUCATION;{/php}, this)" class="text11">Добавить</a>
+	</div>
+<br/><br/>
+	<div align="center"><b>Среднее образование</b></div>
+
+{if is_array($page.form.education_place_top_arr[$page.PT_SECONDARY_EDUCATION]) && sizeof($page.form.education_place_top_arr[$page.PT_SECONDARY_EDUCATION])}
+	<div style="padding-left: 40px"><span class="title title_normal">Популярное:</span>
+		{foreach from=$page.form.education_place_top_arr[$page.PT_SECONDARY_EDUCATION] item=top name=top}
+			<a href="javascript:void(0)" title="Добавить место" onclick="mod_passport.getPlaceForm('education',  {php}echo PlaceMgr::PT_SECONDARY_EDUCATION;{/php}, $('#append_education_{php}echo PlaceMgr::PT_SECONDARY_EDUCATION;{/php}'), {$top.PlaceID})">{$top.Name}</a>{if $top.UsersCount > 0} <sup class="tip"> <a href="/social/community/{$top.CommunityID}/users/" title="Список пользователей" class="text11" style="color: red">{$top.UsersCount|number_format:0:'':' '}</a> </sup>{/if
+			}{if !$smarty.foreach.top.last},{/if}
+		{/foreach}
+	</div><br/>
+{/if}
+	
+{foreach from=$page.form.education_place_arr[$page.PT_SECONDARY_EDUCATION] item=l key=k}
+
+{*
+
+	with_suggest - Использовать контекстный список
+	country_arr - Список стран
+	region_arr - Список регоинов
+	city_arr - Список городов
+	years_arr - Список года обучения
+	class_arr - Список классов
+	placeinfo - Информация о месте
+
+*}
+{php}
+
+	$this->_tpl_vars['res'] = array(
+		'with_suggest'	=> true,
+		'country_arr'		=> $this->_tpl_vars['page']['form']['country_arr'],
+		'region_arr'		=> isset($this->_tpl_vars['page']['form']['region_arr'][$this->_tpl_vars['l']['country']]) ? $this->_tpl_vars['page']['form']['region_arr'][$this->_tpl_vars['l']['country']] : array(),
+		'city_arr'		=> isset($this->_tpl_vars['page']['form']['city_arr'][$this->_tpl_vars['l']['region']]) ? $this->_tpl_vars['page']['form']['city_arr'][$this->_tpl_vars['l']['region']] : array(),
+		'years_arr'		=> &$this->_tpl_vars['page']['form']['years_arr'],
+		'grad_years_arr'	=> &$this->_tpl_vars['page']['form']['grad_years_arr'],
+		'class_arr'		=> &$this->_tpl_vars['page']['form']['class_arr'],
+		'placeinfo'		=> &$this->_tpl_vars['l'],
+		'position'		=> $this->_tpl_vars['k'],
+	);
+
+{/php}
+
+	{include file=$TEMPLATE.ssections.place.education res = $res}
+	
+{/foreach}
+
+	<div align="center">
+		<a id="append_education_{$page.PT_SECONDARY_EDUCATION}" href="javascript:void(0)" 
+			onclick="mod_passport.getPlaceForm('education', {php}echo PlaceMgr::PT_SECONDARY_EDUCATION;{/php}, this)" class="text11">Добавить</a>
+	</div>
+		
+<table align="center" border="0" cellpadding="3" cellspacing="2" width="400">
+	<tr>
+		<td colspan="2" align="center"><input type="submit" value="Сохранить изменения" /></td>
+	</tr>
+</table>
+</form>

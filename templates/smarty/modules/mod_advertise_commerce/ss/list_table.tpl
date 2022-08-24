@@ -1,0 +1,175 @@
+{capture name=pageslink}
+{if $page.pageslink.btn}
+  <table align="left" cellpadding="0" cellspacing="0" border="0">
+  <tr valign="middle">
+    <td style="font-size:11px"><img src="/_img/x.gif" width="1" height="14" border="0" alt="" /></td>
+    {if $page.pageslink.back!="" }<td style="font-size:11px"><a href="{$page.pageslink.back}">&lt;&lt;&lt;</a></td>{/if}
+    <td style="font-size:11px">
+		{foreach from=$page.pageslink.btn item=l}
+			{if !$l.active}
+				&nbsp;<a href="{$l.link}" class="s5b">{$l.text}</a>&nbsp;
+			{else}
+				&nbsp;[{$l.text}]&nbsp;
+			{/if}
+		{/foreach}
+    </td>
+    {if $page.pageslink.next!="" }<td style="font-size:11px"><a href="{$page.pageslink.next}">&gt;&gt;&gt;</a></td>{/if}
+  </tr>
+  </table>
+{/if}
+{/capture}
+
+{if $smarty.capture.pageslink}
+	{$smarty.capture.pageslink}<br/><br/>
+{/if}
+
+{* Table list *} 
+<table align="center" width="100%" cellpadding="2" cellspacing="2" border="0" bgcolor="#FFFFFF">
+	<tr bgcolor="#E9EFEF" align="center">
+		<th width="40px" class="t1"><b>Дата</b></th>
+		<th class="t1"><b>Текст объявления</b></th>
+		<th width="60px" class="t1"><b>Цена<br />(тыс.руб.)</b></th>
+		<th width="40px" class="t1"><b>Этаж</b></th>
+		<th width="40px" class="t1"><b>Телефон</b></th>
+	</tr>				
+	{assign var=sort_key value=''}
+
+{foreach from=$page.list item=l key=_k}
+	{if $ENV._params.order==2 && $l.object != $sort_key}
+		<tr bgcolor="#FFFFFF" align="center">
+			<td colspan="7">
+				<b>{$ENV._arrays.rubrics[$l.rub]} :: {$ENV._arrays.objects[$l.object].b}</b>
+			</td>
+		</tr>
+		{assign var=sort_key value=$l.object}
+	{/if}
+
+	<tr bgcolor="{if $_k%2}#F3F8F8{else}#FFFFFF{/if}" align="center">
+		<td>
+			{*<font class="s3" color="red">{"d-m"|date:$l.date_start}</font><br />{"H:i"|date:$l.date_start}*}
+			<font class="s3" color="red">{$l.date_start|simply_date:"%f":"%d-%m"}</font><br />{"H:i"|date:$l.date_start}
+		</td>
+		
+		<td align="left">
+		{if $ENV._params.order != 2}
+			{if $ENV._arrays.types[$l.object][$l.type]}
+				<font class="t12b">Тип недвижимости/здание:</font>&nbsp;
+				{if !$ENV._params.object}
+					<b>{$ENV._arrays.objects[$l.object].b} / {$ENV._arrays.types[$l.object][$l.type]}</b>
+				{else}
+					{$ENV._arrays.objects[$l.object].b}
+				{/if}
+			{else}
+				<font class="t12b">Тип недвижимости:</font>&nbsp;
+				{if !$ENV._params.object}
+					<b>{$ENV._arrays.objects[$l.object].b}</b>
+				{else}
+					{$ENV._arrays.objects[$l.object].b}
+				{/if}
+			{/if}
+		{/if}
+		{if $l.address}
+			<br /><font class="t12b">Адрес:</font>&nbsp;
+			{if empty($ENV._params.object)}
+				{$l.address|truncate:40}
+			{else}
+			    <b>{$l.address|truncate:40}</b>
+			{/if}{if !empty($l.img1)}&nbsp;<a href="/{$ENV.section}/details.html?id={$l.id}#photo"><img src="/_img/design/200608_title/common/photo_blue.gif" width="14" height="10" alt="Есть фото" title="Есть фото" border="0"></a>{/if}
+		{/if}
+		{if $l.area_build}
+			<br /><font class="t12b">Площадь помещения:</font>&nbsp;
+			{if intval($l.area_build) < floatval($l.area_build)}
+				{$l.area_build|number_format:2:'.':' '} 
+			{else}
+				{$l.area_build|number_format:0:'':' '} 
+			{/if} кв.м.
+		{/if}
+		{if $l.area_site > 0}
+			<br /><font class="t12b">Площадь участка:</font>&nbsp;
+			{if intval($l.area_site) < floatval($l.area_site)}
+				{$l.area_site|number_format:2:'.':' '} 
+			{else}
+				{$l.area_site|number_format:0:'':' '} 
+			{/if}
+			{$ENV._arrays.site_unit[$l.area_site_unit]}
+		{/if}
+			{if $l.contacts|trim != ''}<br /><font class="t12b">Контакты:</font>&nbsp;
+			{$l.contacts|trim|strip_tags|truncate:60}
+			{* if $l.uid==81185 || $l.uid==86282 || $l.uid==86283 || $l.uid==86285 || $l.uid==86287 || $l.uid==103658}
+				<img src="/img/misc/kvadrat.gif" width="78" height="15" border="0" alt="АН КВАДРАТ">
+			{/if *}
+			{* if $l.uid==1785 || $l.uid==90167 || $l.uid==26539 || $l.uid==26554}
+				<img src="/img/misc/makler.gif" width="73" height="11" border="0" alt="АН Маклер">
+			{/if *}<br />
+			{/if}
+			<div align="right">
+        		<a href="/{$ENV.section}/details.html?id={$l.id}">подробнее</a>
+        	</div>
+		</td>
+
+		{if $l.price > 0}
+		<td>
+			{if $ENV._params.order == 3}
+				<b>
+					{if intval($l.price) < floatval($l.price)}
+						{$l.price|number_format:2:'.':' '} 
+					{else}
+						{$l.price|number_format:0:'':' '} 
+					{/if}
+				</b>
+				{if $l.price_unit!=1}
+					<br /><font class="small">({$ENV._arrays.price_unit[$l.price_unit].s})</font>
+				{/if}
+			{else}
+				{if intval($l.price) < floatval($l.price)}
+					{$l.price|number_format:2:'.':' '} 
+				{else}
+					{$l.price|number_format:0:'':' '} 
+				{/if}
+				{if $l.price_unit!=1}
+					<br /><font class="small">({$ENV._arrays.price_unit[$l.price_unit].s})</font>
+				{/if}
+			{/if}
+		</td>
+		{else}
+			<td>-</td>
+		{/if}
+		<td>{if $l.floor}{$l.floor}{else}-{/if}/{if $l.floors}{$l.floors}{else}-{/if}</td>
+		<td>{$ENV._arrays.phone[$l.phone]}</td>
+	</tr>
+
+{*	{if $_k == 4}
+		<tr>
+			<td bgcolor="#FFFFFF" colspan="7" align="center">
+				{banner_v2 id="433"}
+			</td>
+		</tr>
+	{/if}
+	{if $_k == 6}
+		<tr>
+			<td bgcolor="#FFFFFF" colspan="7" align="center">
+				{banner_v2 id="344"}
+			</td>
+		</tr>
+	{/if}
+	{if $_k == 8}
+		<tr>
+			<td bgcolor="#FFFFFF" colspan="7" align="center">
+				{banner_v2 id="388"}
+			</td>
+		</tr>
+	{/if}
+	{if $_k == 10}
+		<tr>
+			<td bgcolor="#FFFFFF" colspan="7" align="center">
+				{banner_v2 id="312"}
+			</td>
+		</tr>
+	{/if}    *}
+{/foreach}
+</table>
+{* Table list end*}
+
+{if $smarty.capture.pageslink}
+	<br/>{$smarty.capture.pageslink}<br/><br/>
+{/if}

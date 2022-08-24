@@ -1,0 +1,1 @@
+{foreach from=$BLOCKS.main item=block }{$block|strip_tags}{/foreach}

@@ -1,0 +1,1 @@
+{$page.blocks.list}

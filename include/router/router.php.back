@@ -1,0 +1,45 @@
+<?php
+
+	LibFactory::GetMStatic('sxgeo', 'SxGeo');
+	LibFactory::GetMStatic('cities', 'citiesmgr');
+	LibFactory::GetStatic('data');
+
+	$url = MAIN_DOMAIN;
+
+	$subject = $_SERVER['SERVER_NAME'];
+	$pattern = '/^(\w*).'.$url.'$/';
+	preg_match($pattern, $subject, $matches);
+
+	$city = $matches[1];
+
+	if ($city == 'www') {
+		Response::Redirect('http://'.$url);
+	}
+
+	$citymgr = CitiesMgr::GetInstance();
+
+
+	if (!empty($city)) {
+		$city = $city == 'ekat' ? 'ekaterinburg' : $city;
+
+		$cityInfo = $citymgr->GetCityInfo($city);
+		$OBJECTS['city'] = $cityInfo;
+		App::SetCityObject($cityInfo);
+		if($cityInfo->IsDefault)
+			Response::Redirect('http://'.$url);
+
+	} else {
+
+		// $location = $OBJECTS['user']->GetLocationInfo();
+
+		// $cityInfo = $citymgr->GetCityInfo($location['city']['name_en']);
+
+		// if ($cityInfo && $cityInfo->IsDefault == 0) {
+		// 	Response::Redirect('http://'.$cityInfo->Domain.'.'.$url);
+		// } else {
+		// 	$defaultCity = $citymgr->GetCity(1); //выбрать домен с ид 1
+		// 	// print_r($defaultCity); exit;
+		// 	Response::Redirect('http://'.$url);
+		// }
+		// exit;
+	}

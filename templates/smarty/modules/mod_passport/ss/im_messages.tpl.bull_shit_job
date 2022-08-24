@@ -1,0 +1,143 @@
+{capture name=pageslink}
+{if !empty($page.pages.btn)}
+	<div class="ppageslink">Страницы:
+	{if $page.pages.back!="" }<a href="{$page.pages.back}" class="ppageslink">&lt;&lt;</a>{/if}
+	{foreach from=$page.pages.btn item=l}
+		{if !$l.active}
+			&nbsp;<a href="{$l.link}" class="ppageslink">{$l.text}</a>
+		{else}
+			&nbsp;<span class="ppageslink_active"> {$l.text} </span>
+		{/if}
+	{/foreach}
+	{if $page.pages.next!="" }&nbsp;<a href="{$page.pages.next}" class="ppageslink">&gt;&gt;</a>{/if}
+	</div>
+{/if}
+{/capture}
+<form style="margin:0px" method="POST">
+<input type="hidden" name="action" value="im_messages" />
+<input type="hidden" name="folder" value="{$page.folder}" />
+<input type="hidden" name="p" value="{$page.page}" />
+<div class="title" style="padding: 5px;">Мои сообщения</div>
+{*<div><a href="/{$ENV.section}/{$CONFIG.files.get.im_new.string}" class="pcomment">написать сообщение</a></div><br>*}
+
+
+
+<div>
+	<span{if $page.folder==1} class="pfolderactive"{else} class="pfolder"{/if}><a href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}">Входящие</a> ({if $page.count.incoming_new>0}<b>{$page.count.incoming_new}</b>/{/if}{$page.count.incoming})</span>
+	<span{if $page.folder==2} class="pfolderactive"{else} class="pfolder"{/if}><a href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?folder=2">Исходящие</a> ({$page.count.outcoming})</span>
+	{if $page.folder==3}<span class="pfolderactive"><a href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?chain={$page.uchain->ID}">Цепочка с {$page.uchain->Profile.general.ShowName}</a> ({$page.count.chain})</span>{/if}
+</div>
+<div>
+
+</div>
+<br>
+
+
+{if $page.folder!=3}
+<table align="center" border="0" cellpadding="3" cellspacing="2" width="100%">
+
+	<tr>
+		{if count($page.list) > 0}
+		<td class="pcomment">Сортировать:
+			<a class="pcomment" href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?folder={$page.folder}&field=created&ord={if $page.field=='created'}{$page.pord}{else}d{/if}">{if $page.field=='created'}<b>дата</b>{else}дата{/if}</a>
+			<a class="pcomment" href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?folder={$page.folder}&field=user&ord={if $page.field=='user'}{$page.pord}{else}a{/if}">{if $page.field=='user'}<b>{/if}{if $page.folder==1}отправитель{else}получатель{/if}{if $page.field=='user'}</b>{/if}</a>
+			<a class="pcomment" href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?folder={$page.folder}&field=type&ord={if $page.field=='type'}{$page.pord}{else}a{/if}">{if $page.field=='type'}<b>{/if}тип{if $page.field=='type'}</b>{/if}</a>
+			<a class="pcomment" href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?folder={$page.folder}&field=title&ord={if $page.field=='title'}{$page.pord}{else}a{/if}">{if $page.field=='title'}<b>{/if}тема{if $page.field=='title'}</b>{/if}</a>
+		</td>
+		{/if}
+	</tr>
+
+	<tr>
+		<td class="pcomment">Показывать:
+			<select name="filter" id="filter">
+				<option value="0">Все</option>
+			{foreach from=$page.types item=l key=k}
+				<option value="{$k}"{if $k==$page.ftype} selected="selected"{/if}>{$l}</option>
+			{/foreach}
+			</select>
+			<input type="button" value="применить" onclick="location.href='/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?folder={$page.folder}&filter='+$('#filter').val();" />
+		</td>
+		{if count($page.list) > 0}
+		<td align="right" class="pmtable_command"><label for="check_all">выбрать все</label></td>
+		<td width="8" style="padding-right:9px;"><input type="checkbox" id="check_all" value="1" onclick="$('.checkboxes').attr('checked', $('#check_all').attr('checked')?true:false);" onchange="$('.checkboxes').attr('checked', $('#check_all').attr('checked')?true:false);" /></td>
+		{/if}
+	</tr>
+
+</table>
+{/if}
+
+
+
+
+{$smarty.capture.pageslink}
+<table align="center" border="0" cellpadding="3" cellspacing="2" width="100%">
+{foreach from=$page.list item=l}
+<tr><td>
+	<table width="100%" cellspacing="0" cellpadding="0">
+		<tr class="pmtable_header">
+			<td class="pmtable_nickname" width="120">&nbsp;{$l.UserInfo->Profile.general.ShowName}</td>
+			<td style="height:25px;">&nbsp;</td>
+			<td>
+				<table width="100%" cellspacing="0" cellpadding="0">
+					<tr>
+						<td><span class="pmtable_date"{if $l.IsNew!=0} style="color:red;font-weight:bold"{/if}>{$l.Created|simply_date}</span></td>
+						<td nowrap="nowrap" align="right">
+							<table cellspacing="6" cellpadding="0">
+								<tr>
+								{if $page.folder!=3 && ($l.UserID!=$l.UserFrom && $page.folder!=2) || ($l.UserID!=$l.UserTo && $page.folder==2)}
+									<td><img width="10" height="10" align="bottom" src="/_i/passport/img/icon1.gif" /></td>
+									<td><b><a class="pmtable_command" href="/{$ENV.section}/{$CONFIG.files.get.im_messages.string}?chain={$l.UserInfo->ID}">история</a></b></td>
+								{/if}
+									{*{if ($l.UserID!=$l.UserFrom && $page.folder!=2) || ($l.UserID!=$l.UserTo && $page.folder==2)}
+									<td><img width="10" height="10" align="bottom" src="/_i/passport/img/icon1.gif" /></td>
+									<td><b><a class="pmtable_command" href="#" onclick="{$l.replyjs}return false;">{if $page.folder==2}написать{else}ответить{/if}</a></b></td>
+								{/if}*}
+									<td><img width="10" height="10" align="bottom" src="/_i/passport/img/icon1.gif" /></td>
+									<td><b><a class="pmtable_command" title="удалить сообщение" href="/{$ENV.section}/{$CONFIG.files.get.im_delete.string}?id={$l.MessageID}&folder={$page.folder}&p={$page.page}">удалить</a></b></td>
+									<td><input type="checkbox" name="ids[]" value="{$l.MessageID}" class="checkboxes" onclick="$('#check_all').attr('checked',$('.checkboxes').length == $('.checkboxes:checked').length?true:false);" onchange="$('#check_all').attr('checked',$('.checkboxes').length == $('.checkboxes:checked').length?true:false);" /></td>
+								</tr>
+							</table>
+						</td>
+					</tr>
+				</table>
+			</td>
+		</tr>
+		<tr>
+			<td width="120" valign="top">
+			{if !empty($l.UserInfo->Profile.general.Avatar)}
+				<a class="pcomment" target="_blank" href="{$l.UserInfo->Profile.general.InfoUrl}">
+					<img border="0" src="{$l.UserInfo->Profile.general.AvatarUrl}" width="{$l.UserInfo->Profile.general.AvatarWidth}" height="{$l.UserInfo->Profile.general.AvatarHeight}">
+				</a>
+			{/if}
+				<div class="pmtable_date">{$l.visited|user_online}</div>
+				<div style="padding-top:4px;padding-bottom:4px;"><a class="pcomment" target="_blank" href="{$l.UserInfo->Profile.general.InfoUrl}">профиль</a></div>
+			</td>
+			<td>&nbsp;</td>
+			<td valign="top">
+				{*<div style="padding-bottom:6px;"><b>Тема:</b> {if $l.IsNew!=0}<b>{/if}<a href="{$l.UserInfo->Profile.general.NewMessage}&m={$l.MessageID}">{$l.Title}</a>{if $l.IsNew!=0}</b>{/if}</div>*}
+				<div style="padding-bottom:4px;" class="dop">{if !empty($l.Type)}<b>{$l.DType}{if !empty($l.RefererTitle)}:{/if}</b>{/if} {if !empty($l.RefererTitle)}{if !empty($l.RefererUrl)}<a href="{$l.RefererUrl}">{/if}{$l.RefererTitle}{if !empty($l.RefererUrl)}</a>{/if}{/if}</div>
+				<div>{$l.Text|nl2br|with_href}</div>
+				{if ($l.UserID!=$l.UserFrom && $page.folder!=2) || ($l.UserID!=$l.UserTo && $page.folder==2)}
+				<div style="padding-top:8px">
+					<input type="button" onclick="{$l.replyjs}return false;" value="{if $page.folder==2}написать{else}ответить{/if}" />
+				</div>
+				{/if}
+			</td>
+		</tr>
+	</table>
+</td></tr>
+{/foreach}
+</table>
+{if count($page.list) > 0}
+<div align="right" style="padding-top:16px">
+	<select name="act">
+		<option value="">-- действие --</option>
+		<option value="make_read">отметить как прочитанные</option>
+		<option value="make_unread">отметить как новые</option>
+		<option value="delete">удалить</option>
+	</select>
+	<input type="submit" value="Ок" />
+</div>
+{/if}
+</form>
+<br><br>

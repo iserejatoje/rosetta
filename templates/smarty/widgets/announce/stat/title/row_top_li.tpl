@@ -1,0 +1,1 @@
+<font class="t11">Аудитория проекта <noindex><a href="http://www.liveinternet.ru/stat/{$CURRENT_ENV.regid}/visitors.html?avgraph=yes&id=9" target="_blank" class="a11"  style="color:red;"><b>{$res.statistic_li[$CURRENT_ENV.regid].visitors|number_format:0:'':' '}</b></a></noindex> человек в день!</font>

@@ -1,0 +1,1 @@
+<a href="http://{$ENV.site.domain}/{$ENV.section}/?from={$CURRENT_ENV.sectionid}{if $res.target}&target={$res.target}{/if}" title="Открыть" target="ublock" onclick="window.open('about:blank', 'ublock','width=480,height=410,resizable=1,menubar=0,scrollbars=0').focus();">Обратная связь...</a>

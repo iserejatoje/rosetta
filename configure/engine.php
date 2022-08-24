@@ -1,0 +1,6 @@
+<?
+
+LibFactory::GetStatic('sections');
+
+
+?>

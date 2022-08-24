@@ -1,0 +1,7 @@
+<?  
+
+	return array(
+		'module' => 'vars',
+	);
+
+?>

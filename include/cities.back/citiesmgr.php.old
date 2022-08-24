@@ -1,0 +1,559 @@
+<?
+require_once (ENGINE_PATH.'include/cities/city.php');
+require_once (ENGINE_PATH.'include/cities/address.php');
+
+class CitiesMgr
+{
+	private $cities = array();
+	private $_address = array();
+
+	public $_db			= null;
+	public $_tables		= array(
+		'cities'   => 'cities',
+		'address'   => 'city_address',
+	);
+
+	private $_cache		= null;
+
+	public function __construct()
+	{
+		LibFactory::GetStatic('filestore');
+		LibFactory::GetStatic('images');
+
+		$this->_db = DBFactory::GetInstance('ksushi');
+		if($this->_db == false)
+			throw new RuntimeBTException('ERR_L_CITIES_CANT_CONNECT_TODB', ERR_L_CITIES_CANT_CONNECT_TODB);
+
+		$this->_cache = $this->getCache();
+	}
+
+	public function getCache()
+	{
+		LibFactory::GetStatic('cache');
+
+		$cache = new Cache();
+		$cache->Init('memcache', 'citiesmgr');
+
+		return $cache;
+	}
+
+	static function &getInstance ()
+	{
+		static $instance;
+
+		if (!isset($instance)) {
+			$cl = __CLASS__;
+			$instance = new $cl();
+		}
+
+		return $instance;
+	}
+
+	private function _citiesObject(array $info)
+	{
+		$info = array_change_key_case($info, CASE_LOWER);
+
+		$city = new City($info);
+		if (isset($info['CityID']))
+			$this->cities[ $info['CityID'] ] = $city;
+
+		return $city;
+	}
+
+	public function AddCity(array $info)
+	{
+		unset($info['CityID']);
+		if ( !sizeof($info) )
+			return false;
+
+		$fields = array();
+		foreach( $info as $k => $v)
+			$fields[] = "`$k` = '".addslashes($v)."'";
+
+		$sql = "INSERT INTO ".$this->_tables['cities']." SET Created = NOW(), ".implode(', ', $fields);
+
+		if ( false !== $this->_db->query($sql) )
+			return $this->_db->insert_id;
+
+		return false;
+	}
+
+	public function RemoveCity($id)
+	{
+		if ( !Data::Is_Number($id) )
+			return false;
+
+		$sql = "DELETE FROM ".$this->_tables['cities']." WHERE CityID = ".$id;
+		if ( false !== $this->_db->query($sql) )
+		{
+			$cache = $this->getCache();
+			$cache->Remove('city_'.$id);
+
+			unset($this->cities[$id]);
+			return true;
+		}
+
+		return false;
+	}
+
+	public function UpdateCity(array $info)
+	{
+		if ( !sizeof($info) || !Data::Is_Number($info['CityID']) )
+			return false;
+
+		$fields = array();
+		foreach( $info as $k => $v)
+			$fields[] = "`$k` = '".addslashes($v)."'";
+
+		$sql = "UPDATE ".$this->_tables['cities']." SET LastUpdated = NOW(), ".implode(', ', $fields);
+		$sql.= " WHERE CityID = ".$info['CityID'];
+
+		if ( false !== $this->_db->query($sql) ) {
+			$cache = $this->getCache();
+			$cache->Remove('city_'.$info['CityID']);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public function GetCityInfo($name) {
+
+		$sql = "SELECT * FROM ".$this->_tables['cities'];
+		$sql .= " WHERE LOWER(NameID) = '".strtolower($name)."'";
+
+		$res = $this->_db->query($sql);
+		if ( false === $res || !$res->num_rows )
+		{
+			$sql = "SELECT * FROM ".$this->_tables['cities'];
+			$sql .= " WHERE IsDefault = 1";
+
+			if ( false === ($res = $this->_db->query($sql)))
+				return false;
+		}
+
+		if (!$res->num_rows)
+			return false;
+
+		return $this->_citiesObject($res->fetch_assoc());
+	}
+
+	public function GetCity($id)
+	{
+		$id = intval($id);
+		if ($id <= 0)
+			return null;
+
+		if ( isset($this->cities[$id]) )
+			return $this->cities[$id];
+
+		$info = false;
+
+		$cacheid = 'city_'.$id;
+
+		if ($this->_cache !== null)
+			$info = $this->_cache->get($cacheid);
+
+		if ($_GET['nocache']>12)
+			$info = false;
+
+		if ($info === false)
+		{
+			$sql = "SELECT * FROM ".$this->_tables['cities']." WHERE CityID = ".$id;
+
+			if ( false === ($res = $this->_db->query($sql)))
+				return null;
+
+			if (!$res->num_rows )
+				return null;
+
+			$info = $res->fetch_assoc();
+
+			if ($this->_cache !== null)
+				$this->_cache->set($cacheid, $info, 3600 * 24);
+		}
+
+		$city = $this->_citiesObject($info);
+		return $city;
+	}
+
+	public function GetCities($filter)
+	{
+		if ( isset($filter['field']) ) {
+			$filter['field'] = (array) $filter['field'];
+			$filter['dir'] = (array) $filter['dir'];
+
+			foreach($filter['field'] as $k => $v) {
+				if ( !in_array($v, array('Created', 'LastUpdated', 'Ord')) )
+					unset($filter['field'][$k], $filter['dir'][$k]);
+			}
+
+			foreach($filter['dir'] as $k => $v) {
+				$v = strtoupper($v);
+				if ( $v != 'ASC' && $v != 'DESC' )
+					$filter['dir'][$k] = 'ASC';
+			}
+
+		}
+
+		if (!isset($filter['field']) || !sizeof($filter['field']) || !sizeof($filter['dir'])) {
+			$filter['field'] = array('Created');
+			$filter['dir'] = array('DESC');
+		}
+
+		if ( isset($filter['flags']['IsVisible']) && $filter['flags']['IsVisible'] != -1 )
+			$filter['flags']['IsVisible'] = (int) $filter['flags']['IsVisible'];
+		elseif (!isset($filter['flags']['IsVisible']))
+			$filter['flags']['IsVisible'] = 1;
+
+		if(!isset($filter['offset']) || !is_numeric($filter['offset']))
+			$filter['offset'] = 0;
+		if($filter['offset'] < 0) $filter['offset'] = 0;
+
+		if(!isset($filter['limit']) || !is_numeric($filter['limit']))
+			$filter['limit'] = 0;
+
+		if ($filter['calc'] === true)
+			$sql = 'SELECT SQL_CALC_FOUND_ROWS * ';
+		else
+			$sql = 'SELECT * ';
+
+		if (isset($filter['group']) && is_array($filter['group']['fields']) && sizeof($filter['group']['fields']))
+			$sql.= ', COUNT(*) as GroupingCount ';
+
+		$sql.= ' FROM '.$this->_tables['cities'].' ';
+
+		$where = array();
+
+
+		if ( $filter['flags']['IsVisible'] != -1 )
+			$where[] = ' '.$this->_tables['cities'].'.IsVisible = '.$filter['flags']['IsVisible'];
+
+		if (isset($filter['filter']) && is_array($filter['filter']['fields']) && sizeof($filter['filter']['fields'])) {
+			$like = array();
+			foreach($filter['filter']['fields'] as $k => $v) {
+				if (!isset($filter['filter']['values'][$k]))
+					$like[] = ' '.$this->_tables['cities'].'.`'.$v.'` LIKE \''.addslashes($filter['filter']['query']).'\'';
+				else
+					$like[] = ' '.$this->_tables['cities'].'.`'.$v.'` LIKE \''.addslashes($filter['filter']['values'][$k]).'\'';
+			}
+
+			if ($filter['filter']['cond'])
+				$where[] = implode(' AND ', $like);
+			else
+				$where[] = '('.implode(' OR ', $like).')';
+		}
+
+		if ( sizeof($where) )
+			$sql .= ' WHERE '.implode(' AND ', $where);
+
+		if (isset($filter['group']) && is_array($filter['group']['fields']) && sizeof($filter['group']['fields'])) {
+			$group = array();
+			foreach($filter['group']['fields'] as $v) {
+				$group[] = ' '.$this->_tables['cities'].'.`'.$v.'`';
+			}
+
+			$sql .= ' GROUP by '.implode(', ', $group);
+		}
+
+		if (isset($filter['having']) && $filter['having'])
+			$sql .= 'HAVING COUNT(*) > '.(int) $filter['having'];
+
+		$sql.= ' ORDER by ';
+
+			$sqlo = array();
+			foreach( $filter['field'] as $k => $v )
+				$sqlo[] = ' `'.$filter['field'][$k].'` '.$filter['dir'][$k];
+
+			$sql .= implode(', ', $sqlo);
+
+		if ( $filter['limit'] ) {
+			$sql .= ' LIMIT ';
+			if ( $filter['offset'] )
+				$sql .= $filter['offset'].', ';
+
+			$sql .= $filter['limit'];
+		}
+
+		$res = $this->_db->query($sql);
+		if ( !$res || !$res->num_rows )
+			return false;
+
+		if ( $filter['calc'] === true )
+		{
+			$sql = "SELECT FOUND_ROWS()";
+			list($count) = $this->_db->query($sql)->fetch_row();
+		}
+
+		$result = array();
+		while ($row = $res->fetch_assoc())
+		{
+			if ($filter['flags']['objects'] === true)
+			{
+				if ( isset($this->cities[$row['CityID']]) )
+					$row = $this->cities[$row['CityID']];
+				else
+					$row = $this->_citiesObject($row);
+			}
+			$result[] = $row;
+		}
+
+		if ( $filter['calc'] === true )
+			return array($result, $count);
+
+		return $result;
+	}
+
+	// ==============================================================
+	private function _addressObject(array $info)
+	{
+		$info = array_change_key_case($info, CASE_LOWER);
+
+		$address = new Address($info);
+		if (isset($info['AddressID']))
+			$this->_address[ $info['AddressID'] ] = $address;
+
+		return $address;
+	}
+
+	public function AddAddress(array $info)
+	{
+		unset($info['AddressID']);
+		if ( !sizeof($info) )
+			return false;
+
+		$fields = array();
+		foreach( $info as $k => $v)
+			$fields[] = "`$k` = '".addslashes($v)."'";
+
+		$sql = "INSERT INTO ".$this->_tables['address']." SET Created = NOW(), ".implode(', ', $fields);
+
+		if ( false !== $this->_db->query($sql) )
+			return $this->_db->insert_id;
+
+		return false;
+	}
+
+	public function RemoveAddress($id)
+	{
+		if ( !Data::Is_Number($id) )
+			return false;
+
+		$sql = "DELETE FROM ".$this->_tables['address']." WHERE AddressID = ".$id;
+		if ( false !== $this->_db->query($sql) )
+		{
+			$cache = $this->getCache();
+			$cache->Remove('address_'.$id);
+
+			unset($this->_address[$id]);
+			return true;
+		}
+
+		return false;
+	}
+
+	public function UpdateAddress(array $info)
+	{
+		if ( !sizeof($info) || !Data::Is_Number($info['AddressID']) )
+			return false;
+
+		$fields = array();
+		foreach( $info as $k => $v)
+			$fields[] = "`$k` = '".addslashes($v)."'";
+
+		$sql = "UPDATE ".$this->_tables['address']." SET LastUpdated = NOW(), ".implode(', ', $fields);
+		$sql.= " WHERE AddressID = ".$info['AddressID'];
+
+		if ( false !== $this->_db->query($sql) ) {
+			$cache = $this->getCache();
+			$cache->Remove('address_'.$info['AddressID']);
+
+			return true;
+		}
+
+		return false;
+	}
+
+	public function GetAddress($id)
+	{
+		$id = intval($id);
+		if ($id <= 0)
+			return null;
+
+		if ( isset($this->_address[$id]) )
+			return $this->_address[$id];
+
+		$info = false;
+
+		$cacheid = 'address_'.$id;
+
+		if ($this->_cache !== null)
+			$info = $this->_cache->get($cacheid);
+
+		if ($_GET['nocache']>12)
+			$info = false;
+
+		if ($info === false)
+		{
+			$sql = "SELECT * FROM ".$this->_tables['address']." WHERE AddressID = ".$id;
+
+			if ( false === ($res = $this->_db->query($sql)))
+				return null;
+
+			if (!$res->num_rows )
+				return null;
+
+			$info = $res->fetch_assoc();
+
+			if ($this->_cache !== null)
+				$this->_cache->set($cacheid, $info, 3600 * 24);
+		}
+
+		$address = $this->_addressObject($info);
+		return $address;
+	}
+
+	public function GetAddressList($filter)
+	{
+		if ( isset($filter['field']) ) {
+			$filter['field'] = (array) $filter['field'];
+			$filter['dir'] = (array) $filter['dir'];
+
+			foreach($filter['field'] as $k => $v) {
+				if ( !in_array($v, array('Created', 'LastUpdated', 'Ord')) )
+					unset($filter['field'][$k], $filter['dir'][$k]);
+			}
+
+			foreach($filter['dir'] as $k => $v) {
+				$v = strtoupper($v);
+				if ( $v != 'ASC' && $v != 'DESC' )
+					$filter['dir'][$k] = 'ASC';
+			}
+
+		}
+
+		if (!isset($filter['field']) || !sizeof($filter['field']) || !sizeof($filter['dir'])) {
+			$filter['field'] = array('Created');
+			$filter['dir'] = array('ASC');
+		}
+
+		if ( isset($filter['flags']['IsAvailable']) && $filter['flags']['IsAvailable'] != -1 )
+			$filter['flags']['IsAvailable'] = (int) $filter['flags']['IsAvailable'];
+		elseif (!isset($filter['flags']['IsAvailable']))
+			$filter['flags']['IsAvailable'] = 1;
+
+		if ( isset($filter['flags']['CityID']) && $filter['flags']['CityID'] != -1 )
+			$filter['flags']['CityID'] = (int) $filter['flags']['CityID'];
+		elseif (!isset($filter['flags']['CityID']))
+			$filter['flags']['CityID'] = -1;
+
+		if(!isset($filter['offset']) || !is_numeric($filter['offset']))
+			$filter['offset'] = 0;
+		if($filter['offset'] < 0) $filter['offset'] = 0;
+
+		if(!isset($filter['limit']) || !is_numeric($filter['limit']))
+			$filter['limit'] = 0;
+
+		if ($filter['calc'] === true)
+			$sql = 'SELECT SQL_CALC_FOUND_ROWS * ';
+		else
+			$sql = 'SELECT * ';
+
+		if (isset($filter['group']) && is_array($filter['group']['fields']) && sizeof($filter['group']['fields']))
+			$sql.= ', COUNT(*) as GroupingCount ';
+
+		$sql.= ' FROM '.$this->_tables['address'].' ';
+
+		$where = array();
+
+		if ( $filter['flags']['IsAvailable'] != -1 )
+			$where[] = ' '.$this->_tables['address'].'.IsAvailable = '.$filter['flags']['IsAvailable'];
+
+		if ( $filter['flags']['CityID'] != -1 )
+			$where[] = ' '.$this->_tables['address'].'.CityID = '.$filter['flags']['CityID'];
+
+		if (isset($filter['filter']) && is_array($filter['filter']['fields']) && sizeof($filter['filter']['fields'])) {
+			$like = array();
+			foreach($filter['filter']['fields'] as $k => $v) {
+				if (!isset($filter['filter']['values'][$k]))
+					$like[] = ' '.$this->_tables['address'].'.`'.$v.'` LIKE \''.addslashes($filter['filter']['query']).'\'';
+				else
+					$like[] = ' '.$this->_tables['address'].'.`'.$v.'` LIKE \''.addslashes($filter['filter']['values'][$k]).'\'';
+			}
+
+			if ($filter['filter']['cond'])
+				$where[] = implode(' AND ', $like);
+			else
+				$where[] = '('.implode(' OR ', $like).')';
+		}
+
+		if ( sizeof($where) )
+			$sql .= ' WHERE '.implode(' AND ', $where);
+
+		if (isset($filter['group']) && is_array($filter['group']['fields']) && sizeof($filter['group']['fields'])) {
+			$group = array();
+			foreach($filter['group']['fields'] as $v) {
+				$group[] = ' '.$this->_tables['address'].'.`'.$v.'`';
+			}
+
+			$sql .= ' GROUP by '.implode(', ', $group);
+		}
+
+		if (isset($filter['having']) && $filter['having'])
+			$sql .= 'HAVING COUNT(*) > '.(int) $filter['having'];
+
+		$sql.= ' ORDER by ';
+
+			$sqlo = array();
+			foreach( $filter['field'] as $k => $v )
+				$sqlo[] = ' `'.$filter['field'][$k].'` '.$filter['dir'][$k];
+
+			$sql .= implode(', ', $sqlo);
+
+		if ( $filter['limit'] ) {
+			$sql .= ' LIMIT ';
+			if ( $filter['offset'] )
+				$sql .= $filter['offset'].', ';
+
+			$sql .= $filter['limit'];
+		}
+
+		if($filter['dbg'])
+			echo $sql;
+
+		$res = $this->_db->query($sql);
+		if ( !$res || !$res->num_rows )
+			return false;
+
+		if ( $filter['calc'] === true )
+		{
+			$sql = "SELECT FOUND_ROWS()";
+			list($count) = $this->_db->query($sql)->fetch_row();
+		}
+
+		$result = array();
+		while ($row = $res->fetch_assoc())
+		{
+			if ($filter['flags']['objects'] === true)
+			{
+				if ( isset($this->_address[$row['AddressID']]) )
+					$row = $this->_address[$row['AddressID']];
+				else
+					$row = $this->_addressObject($row);
+			}
+			$result[] = $row;
+		}
+
+		if ( $filter['calc'] === true )
+			return array($result, $count);
+
+		return $result;
+	}
+
+	public function Dispose()
+	{
+
+	}
+}
+?>

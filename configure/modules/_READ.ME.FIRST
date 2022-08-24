@@ -1,0 +1,85 @@
+Здесь надо оставлять последнюю использованную маску ошибок, чтобы каждый раз не искать ее по всем файлам.
+0x00450000
+
+
+used masks:
+0x00000000 - engine
+0x00010000 - 0x000F0000 зарезервировано для движка
+
+Библиотеки
+0x00010000 - passport
+0x00011000 - filestore
+0x00012000 - mail
+0x00013000 - sms
+0x00014000 - nstree
+0x00015000 - админка
+0x00016000 - diaries
+
+Модули
+0x00100000 - forum
+0x00110000 - love
+0x00120000 - mail
+0x00130000 - search
+0x00140000 - catalog
+0x00150000 - blogs
+0x00160000 - tender
+0x00170000 - poll
+0x00180000 - exchange
+0x00190000 - weather
+0x001A0000 - sale
+0x001B0000 - rent
+0x001C0000 - change
+0x001D0000 - commerce
+0x001E0000 - user_adv (работа с пользователями для sale, rent, change, commerce)
+0x001F0000 - map_google
+0x00200000 - gallery
+0x00210000 - censor
+0x00220000 - info_page
+0x00230000 - empty
+0x00240000 - feedback 
+0x00250000 - passport (клиентский модуль)
+0x00260000 - job_magic
+0x00270000 - notice_v2
+0x00280000 - consult_v2
+0x00290000 - PlaceEngine
+0x002A0000 - Place
+0x002B0000 - SocialEngine
+0x002C0000 - Social
+0x002D0000 - AppPoll
+0x002E0000 - afisha_magic
+0x002F0000 - app_gallery
+0x00300000 - help
+0x00310000 - vars
+0x00320000 - shedule
+0x00330000 - news_magic
+0x00340000 - poputchik
+0x00350000 - conference
+0x00360000 - accident_v2
+0x00370000 - opinion_v2
+0x00380000 - app_news2
+0x00390000 - themes
+0x003A0000 - map_yandex
+0x003B0000 - job
+0x003C0000 - insurance
+0x003D0000 - video_archive
+0x003E0000 - sales
+0x003F0000 - group_article
+0x00400000 - buildings_pictures_location
+0x00410000 - tours
+0x00420000 - poll_v2
+0x00430000 - pages_v3
+0x00440000 - price
+0x00450000 - contests
+0x00460000 - board
+0x00470000 - tags
+0x00480000 - lostfound
+
+
+Формат кода ошибки
+Ошибка - 4-х байтное число
+старшие два байта отвечают за код раздела (модуля)
+младшие два - код ошибки
+
+биты 16-31 отвечают за код раздела(модуля)  маска 0xFFFF0000
+биты  0-15 ошибка                           маска 0x0000FFFF
+

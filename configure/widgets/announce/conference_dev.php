@@ -1,0 +1,1 @@
+<?return array(		'tables'	=> array(		'question'		=> 'conference_question',		'question_ref'	=> 'conference_question_ref',		'group'			=> 'conference_group',		'group_ref'		=> 'conference_group_ref',			),	);?>
