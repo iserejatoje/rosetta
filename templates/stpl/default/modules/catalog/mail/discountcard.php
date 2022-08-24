@@ -662,7 +662,7 @@
 
                     <tr>
                       <td class="text-muted" colspan="2" style="padding: 0 0 60px 0;">
-                        <a href="<?= App::$Protocol . $vars['domain'] ?>">Rosetta.florist</a>
+                        <a href="<?= App::$Protocol . $vars['domain'] ?>">www.rosetta.florist</a>
                       </td>
                     </tr>
                   </table>

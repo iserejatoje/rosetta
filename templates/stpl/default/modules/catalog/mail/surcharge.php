@@ -722,10 +722,6 @@
                     <a href="https://vk.com/rosetta_florist" target="_blank" class="btn-social">
                       <img src="http://<?= $vars['domain'] ?>/resources/img/design/rosetta/mail/btn-vk.png">
                     </a>
-                    &nbsp;&nbsp;&nbsp;&nbsp;
-                    <a href="https://www.instagram.com/rosetta_kemerovo/" target="_blank" class="btn-social">
-                      <img src="http://<?= $vars['domain'] ?>/resources/img/design/rosetta/mail/btn-inst.png">
-                    </a>
                   </center>
                 </td>
               </tr>

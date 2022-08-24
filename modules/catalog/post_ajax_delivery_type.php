@@ -5,7 +5,7 @@
 
     $delivery_type = App::$Request->Post['delivery_type']->Enum(CatalogMgr::DT_DELIVERY, array_keys(CatalogMgr::$DT_TYPES));
     $delivery_district = App::$Request->Post['district_id']->Int(0, Request::UNSIGNED_NUM);
-    $card_id = App::$Request->Post['card_id']->Int(0, Request::UNSIGNED_NUM);
+    // $card_id = App::$Request->Post['card_id']->Int(0, Request::UNSIGNED_NUM);
 
 
     $params['type']             = App::$Request->Post['delivery_type']->Enum(CatalogMgr::DT_DELIVERY, array_keys(CatalogMgr::$DT_TYPES));
@@ -20,9 +20,15 @@
     
     $payment_time = $this->get_payment_time($params);
 
-
-
-    $card = $this->catalogMgr->GetCard($card_id);
+    $card = array();
+    foreach ($_POST['card_id'] as $post) {
+        foreach ($post as $el) {
+            $item = $this->catalogMgr->GetCard($el);
+            if ($item !== null || $item->isvisible !== 0) {
+                $card[] = $item;
+            }
+        }
+    }
 
     $cart = $this->catalogMgr->GetCart();
 
@@ -43,8 +49,15 @@
     }
 
     $total_price = $cart['sum']['total_price'];
-    if($card)
-        $total_price += $card->price;
+
+    $card_price = 0;
+
+    if (count($card) > 0) {
+        foreach ($card as $post) {
+            $total_price += $post->price;
+            $card_price += $post->price;
+        }
+    }
 
     if($default_district)
         $total_price += $default_district->Price;
@@ -61,7 +74,7 @@
         'widget' => STPL::Fetch("widgets/announce/general/cart", [
             'cart' => $cart,
             'more' => [
-                $card->price,
+                $card_price,
             ]
         ]),
         'total_price' => $total_price,

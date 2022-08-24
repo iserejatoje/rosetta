@@ -1,10 +1,9 @@
 <div class="catalog-filter">
     <div class="container">
-        <form id="filtersRoman" method="post" action="/catalog/" data-form="ajax-filter">
+        <form id = "filtersRoman" method="post" action="catalog" data-form="ajax-filter">
             <input type="hidden" name="action" value="ajax_filter" />
-            <input type="hidden" name="priceSort" class="hidde_price_sort" value="" />
 
-            <div class="catalog-filter-col" style="order: 5;margin-right: 7%;">
+            <div class="catalog-filter-col" style="order: 5;">
               <?php
               if(is_array($vars['filter']['type']['visible']) && count($vars['filter']['type']['visible'])) { ?>
                     <div class="catalog-filter-title">Тип</div>
@@ -107,7 +106,7 @@
 
             <?php
             if(is_array($vars['filter']['whom']['visible']) && count($vars['filter']['whom']['visible'])) { ?>
-                <div class="catalog-filter-col" style="order: 4; width: 30%;">
+                <div class="catalog-filter-col" style="order: 4;">
                     <div class="catalog-filter-title">Кому</div>
                     <? foreach($vars['filter']['whom']['visible'] as $param) { ?>
                         <div class="catalog-filter-item">
@@ -154,7 +153,7 @@
 
             <?php
              if(is_array($vars['filter']['cause']['visible']) && count($vars['filter']['cause']['visible'])) { ?>
-                <div class="catalog-filter-col" style="order: 3;width: 26%;margin-left: 0%;">
+                <div class="catalog-filter-col" style="order: 3;">
                     <div class="catalog-filter-title">Повод</div>
                     <? foreach($vars['filter']['cause']['visible'] as $param) { ?>
                         <div class="catalog-filter-item">
@@ -210,45 +209,19 @@
                         <div class="price-label-extremum extr-max"><span class="extr-label-price"></span> р.</div>
                     </div>
                 </div>
-                <script>
-                  let click = false;
-                  function showFiltersRoman(evt) {
-                    if(click) {
-                      linkFiltersRoman.innerHTML = "Показать все фильтры"
-                      click = false;
-                    } else {
-                      linkFiltersRoman.innerHTML = "Скрыть все фильтры"
-                      click = true;
-                    }
-                    console.log("show filters");
+                <script type="text/javascript">
+                  const formFiltersRoman = document.querySelector("#filtersRoman");
+                  const showFiltersRoman = (evt) => {
                     evt.preventDefault();
-                    document.querySelector("#filtersRoman").classList.toggle("active_filters");
+                    formFiltersRoman.classList.toggle("active_filters");
                   }
                 </script>
-                <div data-input="reset" id="reset-filters">сбросить все настройки фильтра</div> <span class = "linkfilters">Показать все фильтры</span>
-                <script>
-                  const linkFiltersRoman = document.querySelector(".linkfilters");
-                  linkFiltersRoman.addEventListener("click",(evt) => showFiltersRoman(evt));
-                </script>
+                <div data-input="reset" id="reset-filters">сбросить все настройки фильтра</div> <a class = "linkfilters" onClick="(evt) => showFiltersRoman(evt)" link href="">Показать все фильтры</a>
             </div>
 
         </form>
 
     </div>
-
-    <div class="container">
-        <div class="sort-block" style="display:flex; align-items: center; margin-top: 20px; margin-bottom: 15px;">
-            <div class="lbl" style="color: #fff; margin-right: 14px;">Сортировать: </div>
-            <div style="display:flex; align-items: center; color:#000; ">
-                <select class="select" name="priceSort" id="priceSort">
-                    <option value="0">По умолчанию</option>
-                    <option value="1">По возрастанию цены</option>
-                    <option value="2">По убыванию цены</option>
-                </select>
-            </div>
-        </div>
-    </div>
-
     <div class="catalog-filter-shadow"></div>
 </div>
 

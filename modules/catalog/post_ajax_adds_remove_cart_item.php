@@ -6,9 +6,19 @@
     // $counts = App::$Request->Post['adds_count']->AsArray();
     $counts = App::$Request->Post['count']->AsArray();
 
-    $card_id = App::$Request->Post['card_id']->Int(0, Request::UNSIGNED_NUM);
+    // $card_id = App::$Request->Post['card_id']->Int(0, Request::UNSIGNED_NUM);
 
-    $card = $this->catalogMgr->GetCard($card_id);
+$card_price = 0;
+foreach ($_POST['card_id'] as $post) {
+    foreach ($post as $el) {
+
+        $item = $this->catalogMgr->GetCard($el);
+        if ($item !== null || $item->isvisible !== 0) {
+            $card[] = $item;
+            $card_price += $item->price;
+        }
+    }
+}
 
     list($key, $addid) = explode("_", $add_key);
     list($productid, $curtypeid, $currenttime) = explode("_", base64_decode($key));
@@ -69,8 +79,10 @@
         $default_district = App::$City->GetDefaultDistrict();
 
     $total_price = $cart['sum']['total_price'];
-    if($card)
-        $total_price += $card->price;
+
+    foreach ($card as $post) {
+        $total_price += $post->price;
+    }
 
     $card_available = false;
     if($total_price > $this->_config['discount_price'])
@@ -91,7 +103,7 @@
         'widget' => STPL::Fetch("widgets/announce/general/cart", [
             'cart' => $cart,
             'more' => [
-                $card->price,
+                $card_price,
             ]
         ]),
         'total_price' => $total_price,

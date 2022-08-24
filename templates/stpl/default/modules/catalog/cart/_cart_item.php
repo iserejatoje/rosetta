@@ -58,4 +58,28 @@
             </div>
         </div>
     </div>
+    <div class="letters" style="margin-left: 11%; padding-top: 60px; position: relative;
+    z-index: 3;">
+        <a href="#" class="show_postcards addder"><span class="postcard-counter">0</span> Открытки к букету</a>
+    </div>
+
+</div>
+
+<div class="overlay overlay-postcard" style="display: none;">
+    <div class="overlay-inner">
+        <div class="postcards-wrapper">
+            <?= STPL::Fetch('modules/catalog/cart/_postcard_item', ['cards' => $vars['cards'], 'key' => $key, 'productid' => $item['product']->productid]) ?>
+        </div>
+
+        <div class="actions-buttons">
+            <a href="#" class="add_postcard_button add-postcard-btn" data-key="<?=$key;?>" data-trigger="setHiddenKey" data-action="ajax_set_product_count">Добавить еще открытку</a>
+            <a href="#" class="add_postcard_button close-button-black" data-key="<?=$key;?>" data-trigger="setHiddenKey" data-action="ajax_set_product_count">Готово</a>
+        </div>
+        <div class="status-block" style="display: none;">
+            <div class="inner">
+                <span class="cart-product-remove" title="Удалить открытку" style="top: 20px; right: 20px !important; z-index: 10;"></span>
+                Пожалуйста, выберите размер открытки
+            </div>
+        </div>
+    </div>
 </div>

@@ -109,7 +109,7 @@
     // 	$mail->AddBody('text', $letter, MailSender::BT_HTML, 'utf-8');
     // 	$mail->SendImmediate();
 
-    // 	$msg = "Rosetta.florist: Cкидка 5% на покупки по коду ".$card->code;
+    // 	$msg = "shop.ipkhratd.beget.tech: Cкидка 5% на покупки по коду ".$card->code;
     // 	LibFactory::GetStatic('sms');
     //     error_log($msg);
     //     // echo $msg; exit;

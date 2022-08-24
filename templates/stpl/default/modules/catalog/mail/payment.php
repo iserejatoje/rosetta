@@ -785,9 +785,6 @@ $discountCard = $vars['discountCard'];
                     <a href="https://vk.com/rosetta_florist" target="_blank" class="btn-social" style="margin-right: 20px;">
                       <img src="<?= App::$Protocol . $vars['domain'] ?>/resources/img/design/rosetta/mail/vk-hover.png">
                     </a>
-                    <a href="https://www.instagram.com/rosetta_kemerovo/" target="_blank" class="btn-social" style="margin-right: 20px;">
-                      <img src="<?= App::$Protocol . $vars['domain'] ?>/resources/img/design/rosetta/mail/ig-hover.png">
-                    </a>
                     <a href="https://www.youtube.com/channel/UCO9av2dtuKY6NiZWTwI2uaQ" target="_blank" class="btn-social">
                       <img src="<?= App::$Protocol . $vars['domain'] ?>/resources/img/design/rosetta/mail/yt-hover.png">
                     </a>

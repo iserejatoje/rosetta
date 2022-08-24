@@ -1,5 +1,9 @@
  <?php
- 
+ /**
+  * Сергей В. Правки. 26.01.2022
+  * Переменная $priceForSort
+  */
+
  $catalogMgr = CatalogMgr::GetInstance();
  foreach($vars['products'] as $product) {
     $isRange = false;
@@ -12,24 +16,32 @@
             $price = $type->GetPrice();
         else
             $price = 0;
+        $priceForSort = $price;
     } elseif($category->kind == CatalogMgr::CK_FIXED) {
         $price = $product->GetPrice();
+        $priceForSort = $price;
     } elseif($category->kind == CatalogMgr::CK_ROSE) {
         $isRange = true;
         $range = $product->getPriceRange(App::$City->CatalogId);
         $price = $range['MinPrice'] . ' - ' . $range['MaxPrice'];
+        $priceForSort = $range['MinPrice'];
+
     } elseif($category->kind == CatalogMgr::CK_FOLDER) {
         $isRange = true;
         $range = $product->getPriceRange(App::$City->CatalogId);
         if($range['MinPrice'] == $range['MaxPrice']) {
             $price = $range['MinPrice'];
+            $priceForSort = $range;
         } else {
             $price = $range['MinPrice'] . ' - ' . $range['MaxPrice'];
+            $priceForSort = $range['MinPrice'];
+
         }
     } elseif($category->kind == CatalogMgr::CK_MONO) {
         $isRange = true;
         $range = $product->getPriceRange(App::$City->CatalogId);
         $price = $range['MinPrice'] . ' - ' . $range['MaxPrice'];
+        $priceForSort = $range['MinPrice'];
     }
 
     $fullPrice = '';
@@ -38,6 +50,8 @@
     if(!$isRange && $catalogMgr->hasDiscount($areaRefs) && $discountPercent > 0) {
         $fullPrice = '&nbsp;' . $price . '&nbsp;';
         $price = $catalogMgr->getDiscountPrice($price, $product, App::$City->CatalogId);
+        $priceForSort = $price;
+
         // $discountPercent = CatalogMgr::getDiscountValue();
     // Для монобкуетов и роз вычисляем диапазон цен с учетом скидки
     } elseif($catalogMgr->hasDiscount($areaRefs) && $discountPercent > 0) {
@@ -45,10 +59,11 @@
             $minPrice = $catalogMgr->calcDiscountPrice($range['MinPrice'], $discountPercent);
             $maxPrice = $catalogMgr->calcDiscountPrice($range['MaxPrice'], $discountPercent);
             $price = $minPrice .' - '. $maxPrice;
+            $priceForSort = $minPrice;
         }
     }
 ?>
-    <a href="/catalog/<?=$category->nameid?>/<?=$product->id?>/" class="product-item theme-<?= CatalogMgr::$THEMES[$product->Theme]['class']?>">
+    <a href="/catalog/<?=$category->nameid?>/<?=$product->id?>/" data-sort-price="<?=$priceForSort;?>" class="product-item theme-<?= CatalogMgr::$THEMES[$product->Theme]['class']?>">
         <? if($areaRefs['ExcludeDiscount'] && $discountPercent > 0) { ?><div class="product-item-sale">-<?= $discountPercent ?>%</div><? } 
             elseif($areaRefs['IsShare']) { ?><div class="product-item-discount">АКЦИЯ</div><? } 
             elseif($areaRefs['IsHit']) { ?><div class="product-item-discount hit">ХИТ</div><? } 

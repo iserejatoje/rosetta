@@ -22,10 +22,11 @@ class Order
         'paymenttype'      => 'int',
         'paymentacid'      => 'int',
         'paymentsystem'    => 'int',
-        'cardid'           => 'int',
-        'cardtext'         => 'string',
-        'cardname'         => 'string',
-        'cardprice'        => 'int',
+        'cardid'           => 'array',
+        'cardtext'         => 'array',
+        'cardname'         => 'array',
+        'cardproductid'    => 'array',
+        'cardprice'        => 'array',
         'totalprice'       => 'float',
         'comment'          => 'string',
         'status'           => 'int',
@@ -60,8 +61,10 @@ class Order
         else
             $this->_values["orderid"] = 0;
 
+
         foreach ($this->_fields as $key => $type)
         {
+
             switch ($type)
             {
                 case 'int':
@@ -87,7 +90,6 @@ class Order
             }
 
         }
-
         $this->cache = CatalogMgr::getInstance()->GetCache();
     }
 

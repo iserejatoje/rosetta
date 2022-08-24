@@ -86,7 +86,6 @@
                 </div>
             <? } ?>
 
-      
 
                     <div class="filter-control-dropdown<? if(count($vars['filter']['whom']['hidden']) + count($vars['filter']['whom']['visible']) < 3) { ?> filter-control-dropdown-mobile<? } ?>">
                         <div class="double-arrow">
@@ -95,7 +94,7 @@
                         </div>
                     </div>
                 </div>
-            <? } ?>
+            <? // } ?>
 
             <? if(is_array($vars['filter']['cause']['visible']) && count($vars['filter']['cause']['visible'])) { ?>
                 <div class="catalog-filter-col">

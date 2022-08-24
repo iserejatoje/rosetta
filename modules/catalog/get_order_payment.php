@@ -69,7 +69,7 @@
 
     LibFactory::GetStatic('mailsender');
     $mail = new MailSender();
-    $mail->AddAddress('from', ROSETTA_EMAIL, "Служба уведомлений", 'utf-8');
+    $mail->AddAddress('from', 'no-reply@rosetta.florist', "Служба уведомлений", 'utf-8');
     $mail->AddHeader('Subject', $this->_env['site']['domain'].". Поступление оплаты к заказу № ".$order->id, 'utf-8');
     $mail->body_type = MailSender::BT_HTML;
 
@@ -122,7 +122,7 @@
     // 	$mail->AddBody('text', $letter, MailSender::BT_HTML, 'utf-8');
     // 	$mail->SendImmediate();
 
-    // 	$msg = "rosetta.florist: Cкидка 5% на покупки по коду ".$card->code;
+    // 	$msg = "shop.ipkhratd.beget.tech: Cкидка 5% на покупки по коду ".$card->code;
     // 	LibFactory::GetStatic('sms');
     //     error_log($msg);
     //     // echo $msg; exit;

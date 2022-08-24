@@ -420,11 +420,6 @@ $monthes = [
                                                 <a href="https://vk.com/rosetta_florist"><img src="<?= $domain ?>/resources/static/mailing/vk.png" alt="" /></a>&nbsp;&nbsp;
 
 
-
-                                                <a href="https://www.instagram.com/rosetta_kemerovo/"><img src="<?= $domain ?>/resources/static/mailing/inst.png" alt="" /></a>&nbsp;&nbsp;
-
-
-
                                                 <a href="https://www.youtube.com/channel/UCO9av2dtuKY6NiZWTwI2uaQ"><img src="<?= $domain ?>/resources/static/mailing/yt.png" alt="" /></a>
 
                                             </td>

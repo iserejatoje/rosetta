@@ -3,9 +3,18 @@
     $json = new Services_JSON();
 
     $district_id = App::$Request->Post['district_id']->Int(0, Request::UNSIGNED_NUM);
-    $card_id = App::$Request->Post['card_id']->Int(0, Request::UNSIGNED_NUM);
+    //$card_id = App::$Request->Post['card_id']->Int(0, Request::UNSIGNED_NUM);
 
-    $card = $this->catalogMgr->GetCard($card_id);
+
+    $card = array();
+    foreach ($_POST['card_id'] as $post) {
+        foreach ($post as $el) {
+            $item = $this->catalogMgr->GetCard($el);
+            if ($item !== null || $item->isvisible !== 0) {
+                $card[] = $item;
+            }
+        }
+    }
 
     $cart = $this->catalogMgr->GetCart();
 
@@ -15,6 +24,8 @@
         $default_district = App::$City->GetDefaultDistrict();
 
     $total_price = $cart['sum']['total_price'];
+
+
     if($card)
         $total_price += $card->price;
 

@@ -1,5 +1,6 @@
 </div>
 
+
 {if !$smarty.cookies.plashka}
     <div class="sale-warning" style="position: fixed;
         padding: 20px;
@@ -26,7 +27,6 @@
         <p>С 1.04.2022 временно изменены условия дисконтной программы: максимальная скидка по дисконтной карте при покупке в интернет-магазине составит 5%. Приносим извинения за доставленные неудобства. Мы вернем прежние условия при первой возможности.</p>
     </div>
 {/if}
-
           <footer id="footer">
               <div class="container">
 
@@ -181,6 +181,7 @@
 
       <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
       <script src="/resources/scripts/design/rosetta/vendor.js?v=0.0.3"></script>
+      <script src="/resources/scripts/design/rosetta/jquery.nice-select.min.js?v=0.0.3"></script>
       <script src="/resources/scripts/design/rosetta/main.js?v=0.0.12"></script>
       <script src="/resources/scripts/design/rosetta/roman_filter.js"></script>
 
@@ -204,6 +205,58 @@
 
           <script type="text/javascript">!function(){var t=document.createElement("script");t.type="text/javascript",t.async=!0,t.src="https://vk.com/js/api/openapi.js?169",t.onload=function(){VK.Retargeting.Init("VK-RTRG-1149076-3NAFI"),VK.Retargeting.Hit()},document.head.appendChild(t)}();</script><noscript><img src="https://vk.com/rtrg?p=VK-RTRG-1149076-3NAFI" style="position:fixed; left:-999px;" alt=""/></noscript>
 
+
+        <!-- Yandex.Metrika counter -->
+        <script type="text/javascript">
+            (function (d, w, c) {
+                (w[c] = w[c] || []).push(function() {
+                    try {
+                        w.yaCounter = new Ya.Metrika({
+                            id:36300185,
+                            clickmap:true,
+                            trackLinks:true,
+                            accurateTrackBounce:true,
+                            webvisor:true
+                        });
+                    } catch(e) { }
+                });
+
+                var n = d.getElementsByTagName("script")[0],
+                    s = d.createElement("script"),
+                    f = function () { n.parentNode.insertBefore(s, n); };
+                s.type = "text/javascript";
+                s.async = true;
+                s.src = "https://mc.yandex.ru/metrika/watch.js";
+
+                if (w.opera == "[object Opera]") {
+                    d.addEventListener("DOMContentLoaded", f, false);
+                } else { f(); }
+            })(document, window, "yandex_metrika_callbacks");
+        </script>
+        <noscript><div><img src="https://mc.yandex.ru/watch/36300185" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+        <!-- /Yandex.Metrika counter -->
+
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+        <script async src="https://www.googletagmanager.com/gtag/js?id=UA-167948321-1"></script>
+        <script>
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', 'UA-167948321-1');
+        </script>
+
+        <!-- Google Analytics -->
+        <script type="text/javascript">
+          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+          m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+          })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+          ga('create', 'UA-82145819-1', 'auto');
+          ga('send', 'pageview');
+        </script>
+        <!-- /Google Analytics -->
         <!-- REMARKETING -->
         <div style="position: absolute;top:0">
         <script type="text/javascript">

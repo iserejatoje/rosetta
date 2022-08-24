@@ -45,6 +45,7 @@ class CatalogMgr
 
     public $_db         = null;
     public $_tables     = array(
+        'postcards'         => 'ctl_postcard',
         'products'          => 'ctl_products',
         'category'          => 'ctl_category',
         'rose_len'          => 'ctl_rose_len',
@@ -845,8 +846,17 @@ class CatalogMgr
         else
             $sql = 'SELECT '.$this->_tables['products'].'.* ';
 
+        if ($filter['flags']['sort_by_price'] == 1) {
+            $sql .= ', p.MinPrice as ProductMinPrice ';
+        }
+        if ($filter['flags']['sort_by_price'] == 2) {
+            $sql .= ', p.MaxPrice as ProductMaxPrice ';
+        }
+
         if (isset($filter['group']) && is_array($filter['group']['fields']) && sizeof($filter['group']['fields']))
             $sql.= ', COUNT(*) as GroupingCount ';
+
+
 
         if($filter['flags']['color'] != 0 )
             $fparams[] = $filter['flags']['color'];
@@ -860,8 +870,8 @@ class CatalogMgr
                 $sql .= ' AND f'.$key.'.ParamID IN ('.implode(", ", $value).')';
             }
 
-
         }
+
 
         if ($filter['flags']['all'] === true)
             $areaJoin = ' LEFT JOIN ';
@@ -870,6 +880,10 @@ class CatalogMgr
 
         $sql .= $areaJoin.$this->_tables['refs'];
         $sql .= ' ON '.$this->_tables['products'].'.ProductID = '.$this->_tables['refs'].'.ProductID';
+
+        if ($filter['flags']['sort_by_price'] > 0) {
+            $sql .= ' INNER JOIN '. $this->_tables['cache_prices'] .' AS p ON p.ProductID = '.$this->_tables['products'].'.ProductID';
+        }
 
         if ( $filter['flags']['CatalogID'] != -1 && $filter['flags']['all'] === true )
             $sql .= ' AND '.$this->_tables['refs'].'.SectionID = '.$filter['flags']['CatalogID'];
@@ -978,14 +992,29 @@ class CatalogMgr
             $sqlo = array();
             foreach( $filter['field'] as $k => $v )
             {
-                if(in_array(strtolower($v), ['ord', 'isvisible', 'isavailable']))
-                    $sqlo[] = ' '.$this->_tables['refs'].'.`'.$filter['field'][$k].'` '.$filter['dir'][$k];
-                // elseif(strtolower($v) == 'typeid')
-                else
-                    $sqlo[] = ' '.$this->_tables['products'].'.`'.$filter['field'][$k].'` '.$filter['dir'][$k];
+
+                if ($filter['flags']['sort_by_price'] > 0) {
+
+
+                    if ($filter['flags']['sort_by_price'] == 1) {
+                        $sqlo[] = ' p.`MinPrice` ASC ';
+                    }
+                    if ($filter['flags']['sort_by_price'] == 2) {
+                        $sqlo[] = ' p.`MaxPrice` DESC ';
+                    }
+                } else {
+
+                    if (in_array(strtolower($v), ['ord', 'isvisible', 'isavailable']))
+                        $sqlo[] = ' ' . $this->_tables['refs'] . '.`' . $filter['field'][$k] . '` ' . $filter['dir'][$k];
+                    // elseif(strtolower($v) == 'typeid')
+                    else
+                        $sqlo[] = ' ' . $this->_tables['products'] . '.`' . $filter['field'][$k] . '` ' . $filter['dir'][$k];
+                }
             }
 
             $sql .= implode(', ', $sqlo);
+
+
 
         if ( $filter['limit'] ) {
             $sql .= ' LIMIT ';
@@ -996,6 +1025,7 @@ class CatalogMgr
         }
         if($filter['dbg'] == 1)
             echo ":".$sql;
+
         $res = $this->_db->query($sql);
         if ( !$res || !$res->num_rows )
             return false;
@@ -1048,6 +1078,8 @@ class CatalogMgr
                 }
             }
         }
+
+//        var_dump($sql);die();
 
         if ( $filter['calc'] === true )
             return array($result, $count);
@@ -1887,6 +1919,26 @@ class CatalogMgr
         }
 
         return $this->_filterObject($info);
+    }
+
+    public function GetOrderPostcards($orderID)
+    {
+
+        $sql = "SELECT cardslist.*, cards.* FROM ".$this->_tables['postcards']." as cardslist
+         LEFT JOIN ".$this->_tables['card']." cards ON cards.CardID = cardslist.postcard_type_id
+         WHERE `order_id` = " . intval($orderID) . " ORDER BY `id` ASC";
+
+        if ( false === ($res = $this->_db->query($sql)))
+            return null;
+
+        if (!$res->num_rows )
+            return null;
+
+        while ($row = $res->fetch_assoc()) {
+            $info[$row['product_id']][] = $row;
+        }
+
+        return $info;
     }
 
     public function GetFilterByName($ctl_filter_name, $isavailable = null)
@@ -2914,6 +2966,11 @@ class CatalogMgr
         // Костыль
         $info['paymentdate'] = 0;
         foreach( $info as $k => $v) {
+
+            // Костыль
+            if (substr($k, 0, 4) == 'card')
+               continue;
+
             // Костыль
             if(is_bool($v)) {
                 $v = (int) $v;
@@ -2925,7 +2982,24 @@ class CatalogMgr
         $sql = 'INSERT INTO '.$this->_tables['orders'].' SET  ' . implode(', ', $fields);
 
         if ( false !== $this->_db->query($sql) ) {
+
             $id = $this->_db->insert_id;
+
+            // Добавление открытки в волшебную таблицу
+            // ' CardID' => $card_ids,
+
+            if (is_array($info['cardid'])) {
+
+                foreach ($info['cardid'] as $hash => $postcards) {
+                    foreach ($postcards as $index => $postcard) {
+                        $sql = 'INSERT INTO '.$this->_tables['postcards'].' (order_id, postcard_type_id, product_id, postcard_text, postcard_price) VALUES ('.$id.', '.$postcard.', '.$info['cardproductid'][$hash][$index].', "'.$info['cardtext'][$hash][$index].'", '.$info['cardprice'][$hash][$index].')';
+                        $this->_db->query($sql);
+                    }
+
+                }
+
+            }
+
             $this->AddOrderRefs($id);
             return $id;
         }
@@ -5365,6 +5439,8 @@ $addition_price = 0;
             if ($this->_cache !== null)
                 $this->_cache->set($cacheid, $info, 3600);
         }
+//        echo '<pre>'.var_export($this->_CardObject($info));die();
+
 
         return $this->_CardObject($info);
     }

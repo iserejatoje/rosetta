@@ -10,10 +10,12 @@
             <!-- <title>Hello Rosetta World!</title> -->
 
             {php}
+                App::$Title->AddStyle('/resources/styles/design/rosetta/nice-select.css?v=0.0.2');
                 App::$Title->AddStyle('/resources/styles/design/rosetta/vendor.css?v=0.0.2');
                 App::$Title->AddStyle('/resources/styles/design/rosetta/combined.css?v=0.1.16');
                 App::$Title->AddStyle('/templates/stpl/default/freelance.css');
             {/php}
+
             {$TITLE->Head}
 
             <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -22,7 +24,6 @@
               <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
               <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
             <![endif]-->
-
 
             {literal}
 
@@ -99,6 +100,7 @@
 
             {/literal}
 
+
         </head>
         <body>
 
@@ -115,7 +117,7 @@
                         <img src="/resources/img/design/rosetta/logo.png" class="img-responsive logo-img" alt="rosetta">
                         <img src="/resources/img/design/rosetta/logo-small.png" class="img-responsive logo-img-small" alt="rosetta">
                     </a>
-                    <a href="http://wedding.rosetta.florist" class="btn-attention">
+                    <a href="https://wedding.rosetta.florist/" class="btn-attention">
                         {literal}
                         <span class="btn-attention__img">
                             <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="212" height="44" viewBox="0 0 212 44">

@@ -24,56 +24,147 @@ if(count($cart_items) > 0) {
             <div class="cart-products">
 
                 <?php
-                 $count_flowers = 0;
 
                  foreach($cart_items as $key => $item) {
+                     $bouquet_count = intval($item['count']);
+                     $category = $item['product']->category;
+                    ?>
 
-                    $category = $item['product']->category;
-                    $count_flowers += 1;
-                ?>
                     <div class="cart-products-item" data-key="<?=$key?>">
-                        <?= STPL::Fetch('modules/catalog/cart/_cart_item', ['cart_items' => $cart_items, 'item' => $item, 'key' => $key, 'category' => $category]) ?>
+                        <?= STPL::Fetch('modules/catalog/cart/_cart_item', ['cart_items' => $cart_items, 'productid' => $item['product']->productid, 'cards' => $vars['cards'], 'item' => $item, 'key' => $key, 'category' => $category]) ?>
+
                     </div>
+
                     <?php // cart product adds ?>
                     <?php foreach($cart_items[$key]['additions'] as $addid => $addition) {
                         $add_key = $key."_".$addition['object']->id;
                         ?>
+
                         <div class="cart-products-item item-add" data-key="<?=$add_key?>" data-parent="<?=$key?>">
                             <?= STPL::Fetch('modules/catalog/cart/_cart_additem', ['addition' => $addition, 'key' => $add_key]) ?>
                         </div>
+
                     <?php } ?>
+
                 <?php } ?>
 
             </div>
-            <?php
-              //for($i=0 ; $i < $count_flowers ; $i++) {
-            ?>
-            <div class="cart-cards clearfix">
-                <div class="cart-card-text">
-                    <div class="cart-card-text-body">
-                        <div class="cart-card-label">Добавить открытку <a href="/resources/img/design/rosetta/cart/card-single.jpg" data-lightbox="card" class="cart-card-label-eye pull-right"><img src="/resources/img/design/rosetta/card-eye.png" alt="rosetta" class="img-responsive"></a></div>
-                        <div class="cart-card-types" data-control="radiolist">
-                            <input type="hidden" name="card_id" value="<?=$i?>">
-                            <?php foreach($vars['cards'] as $card) { ?>
-                                <div class="cart-card-type clearfix" data-control="radiobutton" data-cancel="true" data-id="<?=$card->id?>" data-action="ajax_set_card">
 
-                                    <div class="cart-card-item-button"></div>
-                                    <div class="cart-card-type-text"><?=$card->name?></div>
-                                    <div class="cart-card-type-price"><?=$card->price?> <span class="unit">руб.</span></div>
-
-                                </div>
-                            <?php } ?>
-                        </div>
-                        <div class="cart-card-text-control">
-                            <textarea placeholder="Текст пожелания" name="card_text"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="cart-card-item card-single"></div>
-            </div>
-            <?php
-              //}
-            ?>
+            <style>
+                .status-block .inner {
+                    z-index: 10;
+                    padding: 46px;
+                    background: #cb3e61;
+                    max-width: 422px;
+                    min-height: 172px;
+                    width: 100%;
+                    margin: auto;
+                    position: relative;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+                .status-block {
+                    position: fixed;
+                    left: 0;
+                    right: 0;
+                    top: 0;
+                    bottom: 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    padding: 15px;
+                    z-index: 10000000;
+                    background: #0000007a;
+                }
+                .actions-buttons {
+                    display: flex;
+                    flex-wrap: wrap;
+                }
+                .addder:hover {
+                    background: #b5314f;
+                }
+                .addder:active {
+                    background: #8a1e37;
+                }
+                .addder {
+                    background: #ab2c4a;
+                    text-decoration: none;
+                    padding: 10px 18px;
+                    display: inline-flex;
+                    transition: background 150ms linear;
+                }
+                .close-button-black {
+                    color: #c03051;
+                    background: #fff !important;
+                    margin-left: 15px;
+                }
+                .postcards-wrapper .cart-cards:first-child .cart-product-remove {
+                    display: none !important;
+                }
+                .postcards-wrapper .cart-cards:not(:last-child) {
+                    margin-bottom: 25px;
+                }
+                .postcard-counter {
+                    min-width: 21px;
+                    height: 21px;
+                    display: inline-flex;
+                    border-radius: 12px;
+                    background: #7e1d33;
+                    color: #ffffff;
+                    align-items: center;
+                    font-size: 14px;
+                    justify-content: center;
+                    margin-right: 10px;
+                    text-decoration: none;
+                    padding: 6px;
+                }
+                .add_postcard_button {
+                    background: #c03051;
+                    height: 50px;
+                    max-width: 224px;
+                    width: 100%;
+                    cursor: pointer;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 17px;
+                    margin-top: 20px;
+                }
+                body.overflowed {
+                    overflow: hidden;
+                }
+                .overlay-postcard .overlay-inner .cart-cards {
+                    overflow: hidden;
+                }
+                .overlay-postcard .cart-product-remove:after,
+                .overlay-postcard .cart-product-remove:before {
+                    background: #000 !important;
+                }
+                .overlay-postcard .cart-product-remove {
+                    background: #fff !important;
+                }
+                .overlay-postcard .overlay-inner {
+                    max-width: 1310px;
+                    width: 100%;
+                    position: relative;
+                    margin: auto;
+                }
+                .overlay-postcard {
+                    position: fixed;
+                    left: 0;
+                    right: 0;
+                    padding: 20px 10px;
+                    overflow: auto;
+                    top: 0;
+                    bottom: 0;
+                    background: rgba(0, 0, 0, .7);
+                    z-index: 20555500;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+            </style>
 
             <div class="alert alert-dark alert-theme-influence">
                 <div class="alert-body">
@@ -144,7 +235,7 @@ if(count($cart_items) > 0) {
                         </div>
                         <div class="form-group group-general">
                             <div class="form-group-label-with-arrow">
-                               <span style = "display: flex; flex-direction: row;"><h4> Время доставки </h4><h4 style = "color: red; max-width: 22px; margin-left: 5px; margin-right: 5px;">*</h4><h4> :</h4></span>
+                               <h4 style = "color: red; max-width: 1px; position: absolute; margin-left: -8%;">*</h4><h4> Время доставки: </h4>
                                 <div class="double-arrow">
                                     <div class="double-arrow-part arrow-right"></div>
                                     <div class="double-arrow-part arrow-left"></div>

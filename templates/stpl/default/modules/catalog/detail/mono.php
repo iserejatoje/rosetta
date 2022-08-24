@@ -30,7 +30,7 @@
 
                         <? foreach($product->photos as $photo) { ?>
                             <div class="card-slider-item">
-                                <img src="<?=$photo->Photo['f']?>" class="img-responsive" alt="<?=UString::ChangeQuotes($photo->AltText)?>" title="<?=UString::ChangeQuotes($photo->Title)?>">
+                                <img decoding="async" src="<?=$photo->Photo['f']?>" class="img-responsive" alt="<?=UString::ChangeQuotes($photo->AltText)?>" title="<?=UString::ChangeQuotes($photo->Title)?>">
                             </div>
                         <? } ?>
 

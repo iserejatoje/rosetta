@@ -1,4 +1,4 @@
-<? foreach ($vars['products'] as $key => $product) {
+<? foreach ($vars['products'] as $product) {
         $areaRefs = $product->GetAreaRefs(App::$City->CatalogId);
         $category = $product->category;
         $type = $product->GetDefaultType(App::$City->CatalogId);
@@ -9,7 +9,7 @@
             elseif($areaRefs['IsNew']) { ?><div class="product-item-discount new">НОВИНКА</div><? } ?>
         
         <a class="product-item-img" href="/catalog/<?=$category->nameid?>/<?=$product->id?>/">
-            <img <?= ($key > 13 ? 'loading="lazy"' : '');?> decoding="async" src="<?=$product->PhotoSmall['f']?>" class="img-responsive" alt="<?=UString::ChangeQuotes($product->name)?>" title="<?=UString::ChangeQuotes($product->name)?>">
+            <img src="<?=$product->PhotoSmall['f']?>" class="img-responsive" alt="<?=UString::ChangeQuotes($product->name)?>" title="<?=UString::ChangeQuotes($product->name)?>">
         </a>
         <div class="product-item-info">
             <div class="product-item-name"><?=$product->name?></div>

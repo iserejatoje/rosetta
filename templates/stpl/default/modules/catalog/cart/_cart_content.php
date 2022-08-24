@@ -1,10 +1,9 @@
-
-<?
+<?php
     $cart = $vars['cart'];
     $cart_items = $vars['cart']['items'];
 ?>
 <div class="order-checkout-grid">
-    <?
+    <?php
         $i = 0;
         foreach($cart_items as $key => $item) {
             ++$i;
@@ -61,9 +60,9 @@
                     </div>
                 </div>
             <? } ?>
-    <? } ?>
+    <?php } ?>
 
-    <? if($vars['default_district'] !== null) { ?>
+    <?php if($vars['default_district'] !== null) { ?>
         <div class="order-checkout-item">
             <div class="item-num"><?=++$i?>.</div>
             <div class="item-col size-1 item-img">
@@ -79,9 +78,9 @@
                 <?=$vars['default_district']->Price?> р.
             </div>
         </div>
-    <? } ?>
+    <?php } ?>
 
-    <? if($vars['delivery_type'] == CatalogMgr::DT_PICKUP) { ?>
+    <?php if($vars['delivery_type'] == CatalogMgr::DT_PICKUP) { ?>
         <div class="order-checkout-item">
             <div class="item-num"><?=++$i?>.</div>
             <div class="item-col size-1 item-img">
@@ -95,39 +94,40 @@
             </div>
             <div class="item-col size-2 item-cost"></div>
         </div>
-    <? } ?>
+    <?php } ?>
 
     <?
+    //    echo '<pre>'.var_export($postcards, true).'</pre>';
+    ?>
 
-    foreach($count_flowers as $oneCard) {
-    if($vars['card']) { ?>
-
+    <?php
+    if (!empty($vars['card'])) {
+    foreach ($vars['card'] as $postcard) { ?>
         <div class="order-checkout-item">
             <div class="item-num"><?=++$i?>.</div>
-            <div class="item-col size-1 item-img">
-
-            </div>
+            <div class="item-col size-1 item-img"></div>
             <div class="item-col size-5 item-desc">
-                <div class="item-name"><?=$vars['card']->Name?></div>
+                <div class="item-name"><?=$postcard->Name?></div>
             </div>
-            <div class="item-col size-2 item-count">
-
-            </div>
+            <div class="item-col size-2 item-count"></div>
             <div class="item-col size-2 item-cost">
-                <?=$vars['card']->Price?> р.
+                <?=$postcard->Price?> р.
             </div>
         </div>
-    <? }
+    <?php }
     }
     ?>
 
 </div>
 
-<?
+<?php
     $total_price = $vars['cart']['sum']['total_price'];
     if($vars['card']) {
-        // echo $vars['card']->price."<br>";
-        $total_price += $vars['card']->price;
+
+        foreach ($vars['card'] as $postcard_item) {
+            $total_price += $postcard_item->price;
+        }
+
     }
 
     if($vars['default_district']) {

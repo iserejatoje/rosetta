@@ -7,6 +7,7 @@
     $from       = App::$Request->Post['minprice']->Int(0, Request::UNSIGNED_NUM);
     $to         = App::$Request->Post['maxprice']->Int(0, Request::UNSIGNED_NUM);
     $categoryid = App::$Request->Post['categoryid']->Int(-1, Request::UNSIGNED_NUM);
+    $sortByPrice = App::$Request->Post['priceSort']->Int(-1, Request::UNSIGNED_NUM);
     $page       = App::$Request->Post['page']->Int(0, Request::UNSIGNED_NUM);
 
     LibFactory::GetStatic('bl');
@@ -32,6 +33,7 @@
             'CatalogID' => App::$City->CatalogId,
             // 'all' => true,
             'IsVisible' => 1,
+            'sort_by_price' => $sortByPrice,
             'IsAvailable' => 1,
             'with' => array('AreaRefs'),
             'objects' => true,
@@ -73,6 +75,7 @@
                     'filtered' => $pids,
                     'IsVisible' => 1,
                     'IsAvailable' => 1,
+                    'sort_by_price' => $sortByPrice
                 ],
                 'dbg' => 0,
                 'calc' => true,
@@ -81,6 +84,16 @@
                 // 'offset'=> ($page - 1) * $config['rowsonpage'],
                 // 'limit' => $config['rowsonpage'],
             ];
+
+            if ($sortByPrice == 1) {
+                $filter['field'] = ['MinPrice'];
+                $filter['dir'] = ['ASC'];
+            }
+
+            if ($sortByPrice == 2) {
+                $filter['field'] = ['MinPrice'];
+                $filter['dir'] = ['DESC'];
+            }
 
             if(count($params) > 0) {
                 $filter['flags']['params'] = $params;

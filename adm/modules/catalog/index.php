@@ -6493,11 +6493,15 @@ echo "OK"; exit;
             return STPL::Fetch('admin/modules/catalog/edit_order');
         }
 
+        $postcards = CatalogMgr::getInstance()->GetOrderPostcards($OrderID);
+//        echo '<pre>'.var_export($postcards, true).'</pre>';
+
         return STPL::Fetch('admin/modules/catalog/edit_order', array(
             'form'       => $form,
             'action'     => 'edit_order',
             'section_id' => $this->_id,
             'order'      => $order,
+            'postcards'  => $postcards,
             'order_params' => $order_params,
             'causes' => static::$SURCHARGE_IDS,
         ));
@@ -6769,7 +6773,7 @@ echo "OK"; exit;
 
         LibFactory::GetStatic('mailsender');
         $mail = new MailSender();
-        $mail->AddAddress('from', ROSETTA_EMAIL, "Служба уведомлений", 'utf-8');
+        $mail->AddAddress('from', 'no-reply@rosetta.florist', "Служба уведомлений", 'utf-8');
         $mail->AddHeader('Subject', 'Доплата за заказ №' . $order->OrderID, 'utf-8');
         $mail->body_type = MailSender::BT_HTML;
         $mail->AddAddress('to', $newOrder->CustomerEmail);
@@ -6982,16 +6986,16 @@ echo "OK"; exit;
             $mail->SMTPDebug = 0;                                 // Enable verbose debug output
             $mail->CharSet = 'UTF-8';
             $mail->isSMTP();                                      // Set mailer to use SMTP
-            $mail->Host = 'ssl://smtp.yandex.ru'; //'smtp.yandex.ru';  // Specify main and backup SMTP servers
+            $mail->Host = 'smtp.beget.com'; //'smtp.yandex.ru';  // Specify main and backup SMTP servers
             $mail->SMTPAuth = true;                               // Enable SMTP authentication
-            $mail->Username = 'rossetaflowers@yandex.ru';                 // SMTP username
-            $mail->Password = 'as2247kl';                           // SMTP password
+            $mail->Username = 'no-reply@rosetta.florist';                 // SMTP username
+            $mail->Password = 'Gg#99oZ43iV';                           // SMTP password
             //$mail->SMTPSecure = 'tls';                            // Enable TLS encryption, `ssl` also accepted
             // $mail->Port = 587;                                    // TCP port to connect to
             $mail->Port = 465;                                    // TCP port to connect to
 
             //Recipients
-            $mail->setFrom('rossetaflowers@yandex.ru', 'Служба уведомлений');
+            $mail->setFrom('no-reply@rosetta.florist', 'Служба уведомлений');
             $mail->addAddress($to);     // Add a recipient    // Add a recipient
 
             //Content
@@ -7115,11 +7119,11 @@ echo "OK"; exit;
             $mail_subject = "Статус заказа ".MAIN_DOMAIN;
             if($status == CatalogMgr::OS_ACCEPT) {
                 $send_mail = true;
-                $msg = "Rosetta.florist: Ваш заказ №".$id." на сумму ".$order->totalprice."руб.  успешно принят в работу";
-                $mail_letter = "Rosetta.florist: Ваш заказ №".$id." на сумму ".$order->totalprice."руб.  успешно принят в работу";
+                $msg = "rosetta.florist: Ваш заказ №".$id." на сумму ".$order->totalprice."руб.  успешно принят в работу";
+                $mail_letter = "rosetta.florist: Ваш заказ №".$id." на сумму ".$order->totalprice."руб.  успешно принят в работу";
             } elseif($status == CatalogMgr::OS_DELIVERED) {
                 $send_mail = true;
-                $msg = "Rosetta.florist: Ваш заказ №".$id." доставлен";
+                $msg = "rosetta.florist: Ваш заказ №".$id." доставлен";
                 $mail_letter = "Ваш заказ №".$id." доставлен";
 
                 $price_for_discount = $config['discount_price'];
@@ -7175,7 +7179,7 @@ echo "OK"; exit;
 
                     if($msg && $config['notice']['sms']) {
                         $sms = new SMS();
-                        $result = $sms->send($order->customerphone, "Rosetta.florist: Cкидка 5% на покупки по коду ".$card->code, $config['sms']['login'], $config['sms']['password']);
+                        $result = $sms->send($order->customerphone, "rosetta.florist: Cкидка 5% на покупки по коду ".$card->code, $config['sms']['login'], $config['sms']['password']);
                     }
 
                 } else {

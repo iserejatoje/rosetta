@@ -17,8 +17,7 @@
                           <li><a href="#" data-control="feedback" data-form="letter">Задать вопрос</a></li>
                       </ul>
                       <div class="social clearfix">
-                          <a href="https://vk.com/shop.ipkhratd.beget.tech" target="_blank" class="social-item item-vk"></a>
-                          <a href="https://www.instagram.com/rosetta_kemerovo/" target="_blank" class="social-item item-inst"></a>
+                          <a href="https://vk.com/rosetta_florist" target="_blank" class="social-item item-vk"></a>
                           <a href="https://www.youtube.com/channel/UCO9av2dtuKY6NiZWTwI2uaQ" target="_blank" class="social-item item-yt"></a>
                       </div>
                       <a href="http://zgalex.ru/" target="_blank" title="ZGA - Site, Brand, Support" class="develop">
@@ -33,8 +32,7 @@
           <div class="ui-mobile-substrate">
               <div class="social clearfix">
                     <a href="https://www.youtube.com/channel/UCO9av2dtuKY6NiZWTwI2uaQ" target="_blank" class="social-item item-yt"></a>
-                    <a href="https://www.instagram.com/rosetta_kemerovo/" target="_blank" class="social-item item-inst"></a>
-                    <a href="https://vk.com/shop.ipkhratd.beget.tech" target="_blank" class="social-item item-vk"></a>
+                    <a href="https://vk.com/rosetta_florist" target="_blank" class="social-item item-vk"></a>
               </div>
           </div>
 
